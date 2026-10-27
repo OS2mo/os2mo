@@ -129,10 +129,6 @@ async def test_file_names_filter(
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-@pytest.mark.xfail(
-    reason="the last page hands out a cursor to a page of no files",
-    strict=True,
-)
 async def test_paginate_files(
     upload_file: UploadFile,
     graphapi_post: GraphAPIPost,

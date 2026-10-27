@@ -75,6 +75,7 @@ from .paged import CursorType
 from .paged import LimitType
 from .paged import ObjectsAndCursor
 from .paged import Paged
+from .paged import paginate
 from .paged import to_paged
 from .policy_api import Policy
 from .policy_api import policy_resolver
@@ -154,15 +155,16 @@ async def file_resolver(
         [],
     )
 
-    found_files = await db.files.ls(session, filter)
+    query = db.files.ls(filter)
 
-    offset = int(cursor.last) if cursor else 0
-    files = sorted(found_files)[offset:][:limit]
+    # Pagination
+    query = query.order_by(db.File.uuid)
+    uuids, next_cursor = await paginate(session, query, db.File.uuid, limit, cursor)
 
     result = await session.execute(
         select(db.File.name, db.File.created_at, db.File.updated_at)
-        .where(db.File.store == filter.file_store.name, db.File.name.in_(files))
-        .order_by(db.File.name)
+        .where(db.File.uuid.in_(uuids))
+        .order_by(db.File.uuid)
     )
     return ObjectsAndCursor(
         objects=[
@@ -174,9 +176,7 @@ async def file_resolver(
             )
             for file_name, created_at, updated_at in result.tuples()
         ],
-        next_cursor=(
-            Cursor(last=UUID(int=offset + limit)) if limit and files else None
-        ),
+        next_cursor=next_cursor,
     )
 
 
