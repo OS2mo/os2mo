@@ -186,7 +186,7 @@ async def file_resolver(
     uuids, next_cursor = await paginate(session, query, db.File.uuid, limit, cursor)
 
     result = await session.execute(
-        select(db.File.name, db.File.created_at, db.File.updated_at)
+        select(db.File.uuid, db.File.name, db.File.created_at, db.File.updated_at)
         .where(db.File.uuid.in_(uuids))
         .order_by(db.File.uuid)
     )
@@ -197,8 +197,9 @@ async def file_resolver(
                 file_name=file_name,
                 created_at=created_at,
                 updated_at=updated_at,
+                uuid=file_uuid,
             )
-            for file_name, created_at, updated_at in result.tuples()
+            for file_uuid, file_name, created_at, updated_at in result.tuples()
         ],
         next_cursor=next_cursor,
     )

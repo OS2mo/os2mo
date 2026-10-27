@@ -5,6 +5,7 @@
 from base64 import b64encode
 from datetime import datetime
 from textwrap import dedent
+from uuid import UUID
 
 import strawberry
 
@@ -52,6 +53,9 @@ class File:
         """
         )
     )
+
+    # Keys the file for read rules, without exposing it in the schema
+    uuid: strawberry.Private[UUID]
 
     @strawberry.field(
         description=dedent(
