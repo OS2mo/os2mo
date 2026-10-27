@@ -4,7 +4,6 @@ from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import DateTime
-from sqlalchemy import Select
 from sqlalchemy import String
 from sqlalchemy import UniqueConstraint
 from sqlalchemy import select
@@ -61,16 +60,6 @@ class File(Base):
     content: Mapped[bytes]
 
     __table_args__ = (UniqueConstraint("store", "name", name="uix_store_name"),)
-
-
-def ls(filter) -> Select:
-    """Select the uuids of the files matching the filter."""
-    query = select(File.uuid).where(File.store == filter.file_store.name)
-    if filter.file_names is not None:
-        query = query.where(File.name.in_(filter.file_names))
-    if filter.file_name_contains:
-        query = query.where(File.name.ilike(f"%{filter.file_name_contains}%"))
-    return query
 
 
 async def write(

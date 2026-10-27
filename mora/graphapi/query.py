@@ -6,15 +6,19 @@ from typing import cast
 from uuid import UUID
 
 import strawberry
+from sqlalchemy import ColumnElement
+from sqlalchemy import and_
 from sqlalchemy import select
 from strawberry.types import Info
 
 from mora import db
 from mora.access_log import access_log
+from mora.config import Settings
 from mora.db import AsyncSession
 from mora.graphapi.context import MOInfo
 from mora.graphapi.cpr import CPRPerson
 from mora.graphapi.cpr import cpr_resolver
+from mora.graphapi.custom_schema import get_version
 from mora.graphapi.fields import Metadata
 from mora.graphapi.gmodels.mo.details.association import AssociationRead
 from mora.graphapi.gmodels.mo.details.engagement import EngagementRead
@@ -130,6 +134,21 @@ async def health_resolver(
     )
 
 
+def file_predicate(
+    settings: Settings, version: GraphQLVersion, filter: FileFilter
+) -> ColumnElement[bool]:
+    """The clause holding where a file matches the filter."""
+    clauses: list[ColumnElement] = [db.File.store == filter.file_store.name]
+
+    if filter.file_names is not None:
+        clauses.append(db.File.name.in_(filter.file_names))
+
+    if filter.file_name_contains:
+        clauses.append(db.File.name.ilike(f"%{filter.file_name_contains}%"))
+
+    return and_(*clauses)
+
+
 async def file_resolver(
     info: MOInfo,
     filter: FileFilter,
@@ -155,7 +174,12 @@ async def file_resolver(
         [],
     )
 
-    query = db.files.ls(filter)
+    predicate = file_predicate(
+        settings=info.context.settings,
+        version=get_version(info.schema),
+        filter=filter,
+    )
+    query = select(db.File.uuid).where(predicate)
 
     # Pagination
     query = query.order_by(db.File.uuid)
