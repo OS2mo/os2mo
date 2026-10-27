@@ -7,6 +7,7 @@ from sqlalchemy import DateTime
 from sqlalchemy import String
 from sqlalchemy import UniqueConstraint
 from sqlalchemy import select
+from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Mapped
@@ -38,7 +39,9 @@ class File(Base):
 
     __tablename__ = "file"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    uuid: Mapped[UUID] = mapped_column(
+        primary_key=True, server_default=text("uuid_generate_v4()")
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now(), nullable=False
     )
