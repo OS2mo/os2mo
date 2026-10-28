@@ -90,6 +90,7 @@ from ._rolebinding_rules import RolebindingRuleRevision
 from ._rolebinding_rules import add_rolebinding_rule_revision
 from ._rolebinding_rules import create_rolebinding_rule
 from ._rolebinding_rules import current_rolebinding_rule_revision
+from .files import File
 from .files import FileToken
 import psycopg
 

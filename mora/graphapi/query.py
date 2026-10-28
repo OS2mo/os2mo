@@ -6,15 +6,19 @@ from typing import cast
 from uuid import UUID
 
 import strawberry
+from sqlalchemy import ColumnElement
+from sqlalchemy import and_
 from sqlalchemy import select
 from strawberry.types import Info
 
 from mora import db
 from mora.access_log import access_log
+from mora.config import Settings
 from mora.db import AsyncSession
 from mora.graphapi.context import MOInfo
 from mora.graphapi.cpr import CPRPerson
 from mora.graphapi.cpr import cpr_resolver
+from mora.graphapi.custom_schema import get_version
 from mora.graphapi.fields import Metadata
 from mora.graphapi.gmodels.mo.details.association import AssociationRead
 from mora.graphapi.gmodels.mo.details.engagement import EngagementRead
@@ -75,6 +79,7 @@ from .paged import CursorType
 from .paged import LimitType
 from .paged import ObjectsAndCursor
 from .paged import Paged
+from .paged import paginate
 from .paged import to_paged
 from .policy_api import Policy
 from .policy_api import policy_resolver
@@ -129,6 +134,21 @@ async def health_resolver(
     )
 
 
+def file_predicate(
+    settings: Settings, version: GraphQLVersion, filter: FileFilter
+) -> ColumnElement[bool]:
+    """The clause holding where a file matches the filter."""
+    clauses: list[ColumnElement] = [db.File.store == filter.file_store.name]
+
+    if filter.file_names is not None:
+        clauses.append(db.File.name.in_(filter.file_names))
+
+    if filter.file_name_contains:
+        clauses.append(db.File.name.ilike(f"%{filter.file_name_contains}%"))
+
+    return and_(*clauses)
+
+
 async def file_resolver(
     info: MOInfo,
     filter: FileFilter,
@@ -154,16 +174,21 @@ async def file_resolver(
         [],
     )
 
-    found_files = await db.files.ls(session, filter)
+    predicate = file_predicate(
+        settings=info.context.settings,
+        version=get_version(info.schema),
+        filter=filter,
+    )
+    query = select(db.File.uuid).where(predicate)
 
-    offset = int(cursor.last) if cursor else 0
-    files = sorted(found_files)[offset:][:limit]
+    # Pagination
+    query = query.order_by(db.File.uuid)
+    uuids, next_cursor = await paginate(session, query, db.File.uuid, limit, cursor)
 
-    _File = db.files._File
     result = await session.execute(
-        select(_File.name, _File.created_at, _File.updated_at)
-        .where(_File.store == filter.file_store.name, _File.name.in_(files))
-        .order_by(_File.name)
+        select(db.File.uuid, db.File.name, db.File.created_at, db.File.updated_at)
+        .where(db.File.uuid.in_(uuids))
+        .order_by(db.File.uuid)
     )
     return ObjectsAndCursor(
         objects=[
@@ -172,12 +197,11 @@ async def file_resolver(
                 file_name=file_name,
                 created_at=created_at,
                 updated_at=updated_at,
+                uuid=file_uuid,
             )
-            for file_name, created_at, updated_at in result.tuples()
+            for file_uuid, file_name, created_at, updated_at in result.tuples()
         ],
-        next_cursor=(
-            Cursor(last=UUID(int=offset + limit)) if limit and files else None
-        ),
+        next_cursor=next_cursor,
     )
 
 
