@@ -14,6 +14,8 @@ from oio_rest.db import db_structure
 BOOLEAN = {"type": "boolean"}
 INTEGER = {"type": "integer"}
 STRING = {"type": "string"}
+# The empty string clears the value (see ClearableInt in the database)
+CLEARABLE_INTEGER = {"anyOf": [INTEGER, {"const": ""}]}
 
 
 def _generate_schema_array(items, maxItems=None):
@@ -53,7 +55,7 @@ TYPE_MAP = {
     ),
     "boolean": BOOLEAN,
     "date": STRING,
-    "int": INTEGER,
+    "int": CLEARABLE_INTEGER,
     "interval(0)": STRING,
     "journaldokument": _generate_schema_object(
         {

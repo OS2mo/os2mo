@@ -106,6 +106,9 @@ def convert_attr_value(attribute_name, attribute_field_name, attribute_field_val
         return sql.Literal(f"{s} :: interval")
     elif field_type == "boolean":  # pragma: no cover
         return to_bool(attribute_field_value)
+    elif field_type == "int" and attribute_field_value == "":
+        # Record literal for a cleared ClearableInt, i.e. (value=NULL, cleared=true)
+        return "(,t)"
     else:
         return attribute_field_value
 
