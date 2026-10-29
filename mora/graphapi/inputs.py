@@ -337,7 +337,7 @@ class EngagementUpdateInput:
 
     user_key: str | None = None
     primary: UUID | None = None
-    fraction: int | None = None
+    fraction: int | None = UNSET
     extension_1: str | None = None
     extension_2: str | None = None
     extension_3: str | None = None
@@ -366,7 +366,6 @@ class EngagementUpdateInput:
             "validity": self.validity.to_pydantic(),
             "user_key": self.user_key,
             "primary": self.primary,
-            "fraction": self.fraction,
             "extension_1": self.extension_1,
             "extension_2": self.extension_2,
             "extension_3": self.extension_3,
@@ -384,7 +383,10 @@ class EngagementUpdateInput:
             "job_function": self.job_function,
         }
 
-        # ONLY explicit_manager is passed conditionally to support PATCH semantics
+        # ONLY fraction and explicit_manager are passed conditionally to support
+        # PATCH semantics
+        if self.fraction is not UNSET:
+            kwargs["fraction"] = self.fraction
         if self.explicit_manager is not UNSET:
             kwargs["explicit_manager"] = self.explicit_manager
 

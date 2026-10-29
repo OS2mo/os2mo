@@ -222,9 +222,13 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         new_extensions = {}
 
         if mapping.FRACTION in data:
-            fraction = util.checked_get(data, mapping.FRACTION, default=100)
-
-            new_extensions["fraktion"] = fraction
+            if data[mapping.FRACTION] is None:
+                # LoRa clears an int attribute when given an empty string
+                new_extensions["fraktion"] = ""
+            else:
+                new_extensions["fraktion"] = util.checked_get(
+                    data, mapping.FRACTION, default=100
+                )
 
         fields = self.get_extension_attribute_fields(data)
         new_extensions.update(fields)

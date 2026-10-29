@@ -607,7 +607,7 @@ class EngagementUpsert(UUIDBase):
     person: UUID | None = Field(description="UUID of the related employee.")
 
     def to_handler_dict(self) -> dict:
-        data_dict = {
+        data_dict: dict[str, Any] = {
             "uuid": self.uuid,
             "user_key": self.user_key,
             "primary": gen_uuid(self.primary),
@@ -617,7 +617,6 @@ class EngagementUpsert(UUIDBase):
                 if self.validity.to_date
                 else None,
             },
-            "fraction": self.fraction,
             "person": gen_uuid(self.person) or gen_uuid(self.employee),
             "extension_1": self.extension_1,
             "extension_2": self.extension_2,
@@ -630,6 +629,8 @@ class EngagementUpsert(UUIDBase):
             "extension_9": self.extension_9,
             "extension_10": self.extension_10,
         }
+        if "fraction" in self.__fields_set__:
+            data_dict["fraction"] = self.fraction
         if "explicit_manager" in self.__fields_set__:
             data_dict["explicit_manager"] = gen_uuid(self.explicit_manager)
         return data_dict
@@ -677,7 +678,7 @@ class EngagementUpdate(EngagementUpsert):
         return {
             k: v
             for k, v in data_dict.items()
-            if (v is not None) or k == "explicit_manager"
+            if (v is not None) or k in ("fraction", "explicit_manager")
         }
 
 
