@@ -62,7 +62,7 @@ from .lora import lora_noop_change_context
 logger = get_logger()
 
 # PYTHONDEVMODE: https://docs.python.org/3/library/devmode.html
-if sys.flags.dev_mode:
+if sys.flags.dev_mode:  # pragma: no cover
     logger.warning(
         "Python Development Mode is enabled. Performance may be significantly impacted!"
     )
