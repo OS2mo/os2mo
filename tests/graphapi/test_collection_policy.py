@@ -607,26 +607,30 @@ async def test_the_rules_of_the_callers_policies_are_loaded(
 
 
 @pytest.mark.integration_test
-async def test_a_policy_switched_off_grants_nothing(empty_db: AsyncSession) -> None:
+@pytest.mark.usefixtures("empty_db")
+async def test_a_policy_switched_off_grants_nothing(
+    set_auth: SetAuth,
+    declare_policy: DeclarePolicy,
+    may_read: MayRead,
+    create_org_unit: Callable[..., UUID],
+) -> None:
     """The rules of an inactive policy are left where they are, unread."""
-    empty_db.add(
-        Policy(
-            name="auditor",
-            description="Reads the uuid of addresses, were it active",
-            selectors=[PolicySelector(kind=PolicySelectorKind.role, value="auditor")],
-            active=False,
-            read_rules=[
-                PolicyReadRule(
-                    collection=Collection.Address,
-                    condition="true",
-                    graphql_version=LATEST_VERSION,
-                    fields=[PolicyReadRuleField(field="uuid")],
-                )
+    org_unit = create_org_unit("test")
+    declare_policy(
+        str(uuid4()),
+        {
+            "name": "Auditor",
+            "selectors": [{"kind": "role", "value": "auditor"}],
+            "active": False,
+            "read_rules": [
+                {
+                    "collection": "OrganisationUnit",
+                    "fields": ["uuid"],
+                    "graphql_version": "VERSION_30",
+                }
             ],
-        )
+        },
     )
-    await empty_db.flush()
+    set_auth({"auditor"}, BRUCE_UUID)
 
-    assert await policy_load_fn(
-        empty_db, Settings(), token_getter_of("auditor"), [0]
-    ) == [[]]
+    assert not may_read("org_units", org_unit, "uuid")
