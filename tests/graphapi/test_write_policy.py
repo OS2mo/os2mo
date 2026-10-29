@@ -207,6 +207,11 @@ async def test_a_check_negates_the_whole_of_what_its_not_holds(
             '{"collection": "Nonsense", "filter": {}}',
             "__root__ -> collection\n  value is not a valid enumeration member",
         ),
+        # A condition yields a single map, requiring several things through an and
+        (
+            '[{"collection": "OrganisationUnit", "filter": {}}]',
+            "__root__ -> and\n  field required",
+        ),
     ],
 )
 @pytest.mark.usefixtures("empty_db")
@@ -315,24 +320,6 @@ async def test_a_condition_deciding_by_itself_becomes_the_answer_it_gives(
     set_auth({"reader", "unit_owner"}, BRUCE_UUID)
 
     assert_decided(graphapi_post(mutation, {"input": address_input}))
-
-
-async def test_a_check_yielding_a_list_fails(owner_token: Token) -> None:
-    """A condition yields a single map, requiring several things through an and."""
-    with pytest.raises(ValidationError) as raised:
-        cel2check(
-            settings=Settings(),
-            graphql_version=LATEST_VERSION,
-            condition='[{"collection": "OrganisationUnit", "filter": {}}]',
-            token=owner_token,
-            args={},
-        )
-
-    assert {
-        "loc": ("__root__", "and"),
-        "msg": "field required",
-        "type": "value_error.missing",
-    } in raised.value.errors()
 
 
 async def test_a_check_yielding_what_the_filter_rejects_fails(
