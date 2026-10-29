@@ -9,7 +9,6 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
-from graphql import GraphQLError
 from more_itertools import one
 from pydantic import ValidationError
 from sqlalchemy import select
@@ -212,6 +211,13 @@ async def test_a_check_negates_the_whole_of_what_its_not_holds(
             '[{"collection": "OrganisationUnit", "filter": {}}]',
             "__root__ -> and\n  field required",
         ),
+        # The filter is coerced into its collection's filter
+        (
+            '{"collection": "OrganisationUnit", "filter": {"uuids": ["not-a-uuid"]}}',
+            "Invalid value 'not-a-uuid' at 'value.uuids[0]': "
+            'Value cannot represent a UUID: "not-a-uuid". '
+            "badly formed hexadecimal UUID string",
+        ),
     ],
 )
 @pytest.mark.usefixtures("empty_db")
@@ -320,24 +326,6 @@ async def test_a_condition_deciding_by_itself_becomes_the_answer_it_gives(
     set_auth({"reader", "unit_owner"}, BRUCE_UUID)
 
     assert_decided(graphapi_post(mutation, {"input": address_input}))
-
-
-async def test_a_check_yielding_what_the_filter_rejects_fails(
-    owner_token: Token,
-) -> None:
-    """The filter a condition yields is coerced into its collection's filter."""
-    with pytest.raises(GraphQLError) as raised:
-        cel2check(
-            settings=Settings(),
-            graphql_version=LATEST_VERSION,
-            condition='{"collection": "OrganisationUnit", "filter": {"uuids": ["not-a-uuid"]}}',
-            token=owner_token,
-            args={},
-        )
-
-    assert str(raised.value) == (
-        """Invalid value 'not-a-uuid' at 'value.uuids[0]': Value cannot represent a UUID: "not-a-uuid". badly formed hexadecimal UUID string"""
-    )
 
 
 @pytest.mark.integration_test
