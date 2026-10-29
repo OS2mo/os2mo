@@ -14,10 +14,9 @@ from uuid import uuid4
 
 import pytest
 
-from mora.db import Collection
+from tests.conftest import DeclarePolicy
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
-from tests.conftest import SetRules
 
 DENIED = "No policy approved the access"
 
@@ -43,7 +42,7 @@ VALUES = ("first@example.org", "second@example.org")
 async def test_a_field_no_rule_grants_is_denied_where_it_is_read(
     set_auth: SetAuth,
     graphapi_post: GraphAPIPost,
-    set_rules: SetRules,
+    declare_policy: DeclarePolicy,
     create_org_unit: Callable[..., UUID],
     create_facet: Callable[[dict[str, Any]], UUID],
     create_class: Callable[[dict[str, Any]], UUID],
@@ -78,7 +77,20 @@ async def test_a_field_no_rule_grants_is_denied_where_it_is_read(
         )
         for value in VALUES
     ]
-    await set_rules("auditor", Collection.Address, {"uuid"})
+    declare_policy(
+        str(uuid4()),
+        {
+            "name": "Auditor",
+            "selectors": [{"kind": "role", "value": "auditor"}],
+            "read_rules": [
+                {
+                    "collection": "Address",
+                    "fields": ["uuid"],
+                    "graphql_version": "VERSION_30",
+                }
+            ],
+        },
+    )
     set_auth({"auditor"}, uuid4())
 
     response = graphapi_post(TOP_LEVEL)
