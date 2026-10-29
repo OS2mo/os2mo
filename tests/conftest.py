@@ -1763,6 +1763,46 @@ def read_engagement_uuids(
 
 
 @pytest.fixture
+def read_engagement(graphapi_post: GraphAPIPost) -> Callable[[UUID], dict[str, Any]]:
+    def inner(engagement_uuid: UUID) -> dict[str, Any]:
+        query = """
+            query Engagement($uuid: UUID!) {
+                engagements(filter: {uuids: [$uuid]}) {
+                    objects {
+                        current {
+                            user_key
+                            fraction
+                            person: employee_uuid
+                            org_unit: org_unit_uuid
+                            engagement_type: engagement_type_uuid
+                            job_function: job_function_uuid
+                            primary: primary_uuid
+                            explicit_manager { uuid }
+                            extension_1
+                            extension_2
+                            extension_3
+                            extension_4
+                            extension_5
+                            extension_6
+                            extension_7
+                            extension_8
+                            extension_9
+                            extension_10
+                            validity { from to }
+                        }
+                    }
+                }
+            }
+        """
+        response = graphapi_post(query, variables={"uuid": str(engagement_uuid)})
+        assert response.errors is None
+        assert response.data
+        return one(response.data["engagements"]["objects"])["current"]
+
+    return inner
+
+
+@pytest.fixture
 def create_address(
     graphapi_post: GraphAPIPost,
     root_org: UUID,
