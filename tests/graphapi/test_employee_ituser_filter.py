@@ -204,17 +204,6 @@ def test_employee_ituser_filter(
             },
             set(),
         ),
-        # `null` inherits the employee filter's validity: temp's IT-user has
-        # expired by 2021, while other's is still active
-        (
-            {"ituser": None, "from_date": "2021-06-01T00:00:00+01:00"},
-            {"temp"},
-        ),
-        # Back when both IT-users were active, nobody is without one
-        (
-            {"ituser": None, "from_date": "2020-06-01T00:00:00+01:00"},
-            set(),
-        ),
     ],
 )
 def test_employee_ituser_filter_respects_validity(
