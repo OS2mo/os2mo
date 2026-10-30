@@ -1165,6 +1165,26 @@ def employee_predicate(
         else:
             predicates.append(employee_has_ituser)
 
+    # Manager roles
+    if filter.manager_role is not UNSET:
+        # `null` matches employees without any manager role
+        manager_role_filter = filter.manager_role or ManagerFilter()
+        employee_has_manager_role = exists().where(
+            OrganisationFunktionRelation.rel_type
+            == OrganisationFunktionRelationKode.tilknyttedebrugere,
+            OrganisationFunktionRelation.rel_maal_uuid == BrugerRegistrering.bruger_id,
+            OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
+                select(OrganisationFunktionRegistrering.id).where(
+                    manager_predicate(settings, version, manager_role_filter)
+                )
+            ),
+            _get_active_period_clause(OrganisationFunktionRelation, filter),
+        )
+        if filter.manager_role is None:
+            predicates.append(~employee_has_manager_role)
+        else:
+            predicates.append(employee_has_manager_role)
+
     return and_(*predicates)
 
 

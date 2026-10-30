@@ -329,6 +329,20 @@ class EmployeeFilter(BaseFilter):
         ),
     )
 
+    manager_role: ManagerFilter | None = strawberry.field(
+        default=UNSET,
+        description=dedent(
+            """\
+            Manager role filter limiting which entries are returned.
+
+            Returns the employees holding the matching managerial roles, i.e.
+            the managers themselves, not the employees they manage.
+
+            Set to `null` to only return employees without any managerial roles.
+            """
+        ),
+    )
+
 
 @strawberry.input(description="Engagement filter.")
 class EngagementFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
