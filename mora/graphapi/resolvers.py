@@ -1143,12 +1143,7 @@ def employee_predicate(
 
     # IT users
     if filter.ituser is not UNSET:
-        # `null` matches employees without any IT user in the queried validity
-        ituser_filter = filter.ituser or ITUserFilter(
-            from_date=filter.from_date,
-            to_date=filter.to_date,
-            registration_time=filter.registration_time,
-        )
+        ituser_filter = filter.ituser or ITUserFilter()
         employee_has_ituser = exists().where(
             OrganisationFunktionRelation.rel_type
             == OrganisationFunktionRelationKode.tilknyttedebrugere,
@@ -1167,7 +1162,6 @@ def employee_predicate(
 
     # Manager roles
     if filter.manager_role is not UNSET:
-        # `null` matches employees without any manager role
         manager_role_filter = filter.manager_role or ManagerFilter()
         employee_has_manager_role = exists().where(
             OrganisationFunktionRelation.rel_type
