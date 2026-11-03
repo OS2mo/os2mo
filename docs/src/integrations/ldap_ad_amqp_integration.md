@@ -38,7 +38,7 @@ typisk synkroniseres:
 | MO object class | MO attribute | MO-to-AD | AD-to-MO | AD attribute(s)              |
 |-----------------|--------------|----------|----------|------------------------------|
 | Employee        | givenname    | ✓        | %        | givenName                    |
-| Employye        | surname      | ✓        | %        | sn                           |
+| Employee        | surname      | ✓        | %        | sn                           |
 | Employee        | cpr_no       | ✓        | %        | employeeID                   |
 | ITUser          | user_key     | %        | ✓        | objectGUID                   |
 | Address         | value        | ✓        | ✓        | mail                         |
@@ -100,5 +100,41 @@ Hvis jhans allerede eksisterer, vil Jens Hansen få “jhans2”.
 Brugernavnsgeneratoren kan desuden konsultere en såkaldt forbudtliste, som indeholder brugernavne, der ikke må
 genereres. Det kan være fordi de kan betragtes som anstødelige, eller fordi de findes i forvejen i AD’et eller andre
 systemer, hvor der ikke må forekomme dubletter.
+
+### Oprydning af forældreløse adresser
+
+Hvis en AD-konto slettes, kan der stå adresser (fx e-mailadresser) tilbage i MO, som stadig peger på kontoens IT-konto.
+Det kan man rydde op i med endepunktet `POST /fixup/cleanup_orphaned_addresses`, som er tilgængeligt i integrationens
+API (Swagger under tagget `LDAP`).
+
+En adresse betragtes som forældreløs, hvis en af følgende er opfyldt:
+
+- Adressen er ikke knyttet til nogen IT-konto.
+- Adressens IT-konto har ikke noget eksternt id (AD-objektets `objectGUID`).
+- Adressens IT-kontos eksterne id findes ikke længere i AD.
+
+Kun adresser med de angivne adressetyper og som er gældende i dag, tages i betragtning. Forældreløse adresser afsluttes
+med slutdato i går, så deres historik bevares.
+
+| Parameter                | Påkrævet | Standard | Beskrivelse                                                                                                                           |
+|--------------------------|----------|----------|---------------------------------------------------------------------------------------------------------------------------------------|
+| `address_type_user_keys` | Ja       |          | Brugernøgler på de adressetyper, der skal ryddes op i, fx `EmailEmployee`. Kan angives flere gange.                                     |
+| `dry_run`                | Nej      | `true`   | Ved `true` returneres kun de adresser, der *ville* blive afsluttet. Intet ændres i MO.                                                  |
+| `itsystem_user_key`      | Nej      |          | Adresser knyttet til en IT-konto i et *andet* IT-system end dette lades urørt. Adresser uden IT-konto regnes stadig som forældreløse.   |
+
+Svaret er en liste med UUID'er på de adresser, som er (eller, ved `dry_run`, ville blive) afsluttet.
+
+**Bemærk:** Der er ingen sikkerhedsspærre mod masseoprydning. Hvis AD er tomt eller utilgængeligt, vil alle adresser med
+IT-konti blive betragtet som forældreløse. Kør derfor altid først med `dry_run=true` og kontrollér listen.
+
+Anbefalet fremgangsmåde: Kør først med `dry_run=true`, gennemgå listen, og kør derefter igen med `dry_run=false`.
+
+```
+# Se hvad der ville blive ryddet op
+POST /fixup/cleanup_orphaned_addresses?address_type_user_keys=EmailEmployee
+
+# Udfør oprydningen
+POST /fixup/cleanup_orphaned_addresses?address_type_user_keys=EmailEmployee&dry_run=false
+```
 
 Se yderligere teknisk dokumentation [her](https://github.com/magenta-aps/os2mo-ldap-import-export).
