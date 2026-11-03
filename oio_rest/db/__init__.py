@@ -587,6 +587,8 @@ def filter_json_output(output):
             k: v2
             for k, v in output.items()
             if (v2 := filter_json_output(v))
+            # Integer zero is a value, not an empty field (bools excluded)
+            or type(v2) is int
             or (k == "brugervendtnoegle" and v == "")
             or (k == "titel" and v == "")
         }
