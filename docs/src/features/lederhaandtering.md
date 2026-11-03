@@ -84,6 +84,26 @@ Bemærk, at engagementet knyttes til **lederrollen** og ikke til personen. Blive
 
 Redigér engagementet, og ryd felterne *Eksplicit leder* og *Lederrolle*. Engagementet bruger så igen lederen af sin enhed.
 
+#### Tildel eksplicit leder til flere engagementer på én gang
+
+Skal flere medarbejdere i samme enhed have den samme eksplicitte leder, kan det gøres i én arbejdsgang i stedet for at redigere engagementerne ét ad gangen. Siden findes i venstremenuen under *Tildel eksplicit leder* (ikonet med en person og et flueben):
+
+![image](../graphics/lederhaandtering/eksplicitleder_menu.png)
+
+1. Vælg *Startdato*. Ændringen gælder fra denne dato, og engagementernes eventuelle slutdato bevares.
+2. Søg enheden frem i feltet *Organisation*. Listen *Engagementer* viser herefter de engagementer, der ligger i enheden på startdatoen, sorteret efter navn. Engagementer i underenheder kommer ikke med.
+3. Sæt flueben ud for de engagementer, der skal have den eksplicitte leder, eller brug *Vælg alle*. Har et engagement allerede en eksplicit leder, står navnet på lederen ud for engagementet sammen med ikonet.
+4. Søg lederen frem i feltet *Eksplicit leder*, og vælg den rigtige rolle i feltet *Lederrolle*. Har personen kun én lederrolle på startdatoen, vælges den automatisk. Har personen ingen lederroller på startdatoen, står der "Personen har ingen lederroller på startdatoen", og formularen kan ikke gemmes.
+5. Klik på *Tildel eksplicit leder*.
+
+![image](../graphics/lederhaandtering/eksplicitleder_tildel_flere.png)
+
+Kun de engagementer, der er sat flueben ved, bliver ændret. De øvrige engagementer i enheden beholder det, de har i forvejen.
+
+#### Fjern eksplicit leder fra flere engagementer
+
+Samme side bruges til at fjerne den eksplicitte leder fra flere engagementer på én gang: Vælg startdato, enhed og engagementer som ovenfor, men lad feltet *Eksplicit leder* stå tomt. Knappen skifter så til *Fjern eksplicit leder*. De valgte engagementer bruger herefter igen lederen af deres enhed fra startdatoen.
+
 #### Sådan vises det
 
 I kolonnen *Leder* under fanen *Engagementer* vises den eksplicitte leder alene, efterfulgt af et lille ikon (en person med et flueben). Holder man musen over ikonet, står der "Eksplicit leder". Er den eksplicitte lederrolle vakant, vises "Vakant" efterfulgt af lederrollens enhed i parentes, med et link til enhedens fane *Ledere*. Engagementer uden eksplicit leder viser som hidtil enhedens leder(e).
