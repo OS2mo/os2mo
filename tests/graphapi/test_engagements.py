@@ -518,7 +518,8 @@ async def test_update_engagement_integration_test(
     # If value is None, we use data from our original query
     # to ensure that the field has not been updated
     expected_updated_engagement = {
-        k: v or pre_update_engagement[k] for k, v in test_data.items()
+        k: v if v is not None else pre_update_engagement[k]
+        for k, v in test_data.items()
     }
 
     assert post_update_engagement == expected_updated_engagement

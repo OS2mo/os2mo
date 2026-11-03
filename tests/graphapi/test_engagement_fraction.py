@@ -70,3 +70,71 @@ def test_engagement_fraction(
         **before,
         "fraction": expected_fraction,
     }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_create_engagement_with_zero_fraction(
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[..., UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+    read_engagement: Callable[[UUID], dict[str, Any]],
+) -> None:
+    """Regression test: a fraction of 0 must be stored, not dropped."""
+    # Arrange
+    org_unit = create_org_unit("root")
+    person = create_person()
+
+    # Act
+    engagement_uuid = create_engagement(
+        {
+            "user_key": "12345",
+            "org_unit": str(org_unit),
+            "person": str(person),
+            "engagement_type": str(uuid4()),
+            "job_function": str(uuid4()),
+            "fraction": 0,
+            "validity": {"from": "2020-01-01", "to": None},
+        }
+    )
+
+    # Assert
+    assert read_engagement(engagement_uuid)["fraction"] == 0
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+def test_update_engagement_fraction_to_zero(
+    create_org_unit: Callable[..., UUID],
+    create_person: Callable[..., UUID],
+    create_engagement: Callable[[dict[str, Any]], UUID],
+    update_engagement: Callable[[dict[str, Any]], UUID],
+    read_engagement: Callable[[UUID], dict[str, Any]],
+) -> None:
+    """Regression test: updating a fraction to 0 must store 0."""
+    # Arrange
+    org_unit = create_org_unit("root")
+    person = create_person()
+    engagement_uuid = create_engagement(
+        {
+            "user_key": "12345",
+            "org_unit": str(org_unit),
+            "person": str(person),
+            "engagement_type": str(uuid4()),
+            "job_function": str(uuid4()),
+            "fraction": 500,
+            "validity": {"from": "2020-01-01", "to": None},
+        }
+    )
+
+    # Act
+    update_engagement(
+        {
+            "uuid": str(engagement_uuid),
+            "fraction": 0,
+            "validity": {"from": "2020-01-01", "to": None},
+        }
+    )
+
+    # Assert
+    assert read_engagement(engagement_uuid)["fraction"] == 0
