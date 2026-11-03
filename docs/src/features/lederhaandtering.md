@@ -28,6 +28,78 @@ Ledertabellerne har en Engagementskolonne, så man let kan se, hvilken ansættel
 
 ![image](../graphics/lederhaandtering/ledereudstilling.png)
 
+## Primær leder og eksplicit leder
+
+Som udgangspunkt er en medarbejders leder den leder, der er placeret i medarbejderens enhed. Nogle gange er der brug for at være mere præcis: Hvis enheden har flere ledere, kan man markere én af dem som **primær leder**. Og hvis en medarbejder skal referere til én og kun én leder, kan man angive en **eksplicit leder** direkte på medarbejderens engagement.
+
+### Primær leder
+
+#### Markér en leder som primær
+
+1. Gå til enheden, vælg fanen *Ledere*, og klik på *Opret leder* – eller klik på blyanten ud for en eksisterende leder for at redigere.
+2. Udfyld *Startdato*.
+3. Vælg *Primær* i feltet *Primær*.
+4. Klik på *Opret leder* / *Redigér leder*.
+
+![image](../graphics/lederhaandtering/primaerleder_opret.png)
+
+Om en leder er primær, kan ses i kolonnen *Primær* i fanen *Ledere* – både på enheden og på medarbejderen.
+
+![image](../graphics/lederhaandtering/primaerleder_tabel.png)
+
+#### Reglen: én primær leder pr. enhed
+
+- En enhed kan kun have én primær leder ad gangen.
+- Den samme person må gerne være primær leder i flere forskellige enheder.
+- En vakant lederrolle kan også være primær.
+
+Hvis en anden leder allerede er primær i enheden i en periode, der overlapper den, du har valgt, vises meddelelsen "Enheden har allerede en primær leder i perioden" under feltet sammen med navn og periode på den eksisterende primære leder. Formularen kan ikke gemmes, før konflikten er løst.
+
+#### Skift primær leder
+
+Fordi der kun må være én primær leder ad gangen, skal den gamle markering fjernes, før den nye sættes:
+
+1. Redigér den nuværende primære leder med *Startdato* = den dato, skiftet skal ske, og ryd feltet *Primær* (klik på krydset).
+2. Redigér (eller opret) den nye leder med samme *Startdato*, og vælg *Primær*.
+
+Den gamle leder er herefter primær frem til dagen før skiftet, og den nye fra skiftedatoen.
+
+### Eksplicit leder
+
+Som udgangspunkt får et engagement sin eller sine ledere fra den enhed, engagementet er placeret i (og – afhængigt af opsætningen – fra en overliggende enhed, hvis enheden ikke selv har en leder). Med eksplicit leder kan man for det enkelte engagement angive præcis hvilken lederrolle, medarbejderen refererer til. Lederrollen kan ligge hvor som helst i organisationen.
+
+#### Angiv en eksplicit leder
+
+Feltet findes, når man opretter eller redigerer et engagement – fra medarbejdersiden, fra enhedens fane *Engagementer* og i flowet for oprettelse af nye medarbejdere.
+
+1. Søg lederen frem i feltet *Eksplicit leder*. Søgningen finder kun personer, der findes på engagementets startdato.
+2. Vælg den rigtige rolle i feltet *Lederrolle*. Listen viser de lederroller, personen har på engagementets startdato, med enhed og ledertype – så det er tydeligt, hvilken rolle der vælges, hvis personen er leder flere steder. Vælger man en anden person, nulstilles feltet *Lederrolle*.
+3. Gem engagementet.
+
+![image](../graphics/lederhaandtering/eksplicitleder_engagement.png)
+
+Bemærk, at engagementet knyttes til **lederrollen** og ikke til personen. Bliver lederrollen vakant, vises den som vakant på engagementet, og besættes samme lederrolle af en ny person, følger engagementet automatisk med. Man kan dog ikke vælge en vakant lederrolle som ny eksplicit leder, da rollen findes via den person, der besætter den.
+
+#### Fjern en eksplicit leder
+
+Redigér engagementet, og ryd felterne *Eksplicit leder* og *Lederrolle*. Engagementet bruger så igen lederen af sin enhed.
+
+#### Sådan vises det
+
+I kolonnen *Leder* under fanen *Engagementer* vises den eksplicitte leder alene, efterfulgt af et lille ikon (en person med et flueben). Holder man musen over ikonet, står der "Eksplicit leder". Er den eksplicitte lederrolle vakant, vises "Vakant" efterfulgt af lederrollens enhed i parentes, med et link til enhedens fane *Ledere*. Engagementer uden eksplicit leder viser som hidtil enhedens leder(e).
+
+![image](../graphics/lederhaandtering/eksplicitleder_tabel.png)
+
+#### Når den eksplicitte lederrolle ophører
+
+MO afslutter ikke koblingen automatisk, når den valgte lederrolle ophører. Så længe rollen ikke er aktiv, viser kolonnen *Leder* enhedens leder(e) i stedet. Redigerer man engagementet med en startdato, hvor rollen ikke er aktiv, vises en advarsel om, at engagementets eksplicitte lederrolle ikke er aktiv på startdatoen. Koblingen bevares, medmindre man fjerner den eller vælger en ny lederrolle.
+
+### Opsætning og teknik
+
+Feltet *Primær* på ledere slås til af Magenta efter aftale. Eksplicit leder er tilgængelig i engagementsformularerne uden særlig opsætning.
+
+I GraphQL-API'et findes primær-markeringen i feltet `primary` på ledere (med tilsvarende `primary`-filter), og den eksplicitte leder i feltet `explicit_manager` på engagementer (med tilsvarende filter). Bemærk, at `managers`-feltet på engagementer ikke tager højde for `explicit_manager` – integrationer, der skal respektere eksplicit leder, skal læse feltet særskilt.
+
 ## Automatikker
 
 Det er muligt at oprette ledere manuelt i MO, og når det er gjort, kan en række arbejdsgange automatiseres.
