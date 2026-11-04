@@ -343,6 +343,17 @@ class EmployeeFilter(BaseFilter):
         ),
     )
 
+    engagement: EngagementFilter | None = strawberry.field(
+        default=UNSET,
+        description=dedent(
+            """\
+            Engagement filter limiting which entries are returned.
+
+            Set to `null` to only return employees without any engagements.
+            """
+        ),
+    )
+
 
 @strawberry.input(description="Engagement filter.")
 class EngagementFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):

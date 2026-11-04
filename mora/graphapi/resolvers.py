@@ -1179,6 +1179,25 @@ def employee_predicate(
         else:
             predicates.append(employee_has_manager_role)
 
+    # Engagements
+    if filter.engagement is not UNSET:
+        engagement_filter = filter.engagement or EngagementFilter()
+        employee_has_engagement = exists().where(
+            OrganisationFunktionRelation.rel_type
+            == OrganisationFunktionRelationKode.tilknyttedebrugere,
+            OrganisationFunktionRelation.rel_maal_uuid == BrugerRegistrering.bruger_id,
+            OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
+                select(OrganisationFunktionRegistrering.id).where(
+                    engagement_predicate(settings, version, engagement_filter)
+                )
+            ),
+            _get_active_period_clause(OrganisationFunktionRelation, filter),
+        )
+        if filter.engagement is None:
+            predicates.append(~employee_has_engagement)
+        else:
+            predicates.append(employee_has_engagement)
+
     return and_(*predicates)
 
 
