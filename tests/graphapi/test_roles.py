@@ -78,6 +78,7 @@ async def test_create_rolebinding_integration_test(
     response = graphapi_post(mutation, {"input": test_data})
     assert response.errors is None
     uuid = UUID(response.data["rolebinding_create"]["uuid"])
+    assert uuid == UUID(test_data["uuid"])
 
     verify_query = """
         query VerifyQuery($uuid: UUID!) {

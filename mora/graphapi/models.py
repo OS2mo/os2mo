@@ -1449,6 +1449,7 @@ class RoleBindingCreate(UUIDBase):
 
     def to_handler_dict(self) -> dict:
         return {
+            "uuid": self.uuid,
             "user_key": self.user_key,
             "org_unit": gen_uuid(self.org_unit),
             "it": gen_uuid(self.ituser),
