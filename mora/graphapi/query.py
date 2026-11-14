@@ -32,6 +32,8 @@ from mora.graphapi.gmodels.mo.details.owner import OwnerRead
 from mora.graphapi.gmodels.mo.details.related_unit import RelatedUnitRead
 from mora.graphapi.gmodels.mo.employee import EmployeeRead
 from mora.graphapi.gmodels.mo.organisation_unit import OrganisationUnitRead
+from mora.graphapi.graphql_utils import GrantedKey
+from mora.graphapi.graphql_utils import requested_fields
 from mora.graphapi.version import Version as GraphQLVersion
 
 from .access_log import AccessLog
@@ -186,7 +188,8 @@ async def file_resolver(
     query = select(db.File.uuid).where(predicate)
     if filter.granted is not UNSET:
         granted_loader = info.context.dataloaders.granted_loader
-        granted = await granted_loader.load(db.Collection.File)
+        fields = requested_fields(info._raw_info, ["objects"])
+        granted = await granted_loader.load(GrantedKey(db.Collection.File, fields))
         query = query.where(granted if filter.granted else ~granted)
 
     # Pagination

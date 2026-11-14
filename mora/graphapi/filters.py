@@ -441,14 +441,14 @@ class FileFilter:
         default=UNSET,
         description=dedent(
             """\
-            Filter by whether a read rule of the caller's policies grants a field.
+            Filter by whether the caller is granted the fields requested on the files.
 
             * Omitted (`UNSET`): no filtering on grants.
-            * `true`: only files a rule grants any field on.
-            * `false`: only files no rule grants any field on.
+            * `true`: only files the caller may read every requested field of.
+            * `false`: only files the caller may not read some requested field of.
 
-            A file a rule grants a field on may still have fields no rule grants,
-            and these are still denied when read. `null` is rejected.
+            The requested fields are those selected on `objects`, so the files
+            returned depend on the fields selected. `null` is rejected.
             """
         ),
     )

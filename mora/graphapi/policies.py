@@ -70,7 +70,10 @@ from mora.graphapi import rolebinding_rules
 from mora.graphapi.custom_schema import CustomSchema
 from mora.graphapi.graphql_utils import AccessKey
 from mora.graphapi.graphql_utils import Field
+from mora.graphapi.graphql_utils import GrantedKey
 from mora.graphapi.graphql_utils import WriteKey
+from mora.graphapi.rbac_map import PUBLIC_FIELDS
+from mora.graphapi.rbac_map import RBAC_MAP
 from mora.graphapi.schema import get_schema
 from mora.graphapi.version import Version
 
@@ -482,27 +485,44 @@ async def access_load_fn(
 
 
 def granted_predicate(
-    token: Token, collection: Collection, rules: Iterable[Rule]
+    token: Token, key: GrantedKey, rules: Iterable[Rule]
 ) -> ColumnElement[bool]:
-    """The clause holding where a rule grants the caller a field of the collection."""
+    """The clause holding where every field of the key is granted to the caller."""
     # Admins may read everything, see `admin_policy`
     if "admin" in token.realm_access.roles:
         return true()
-    # Without a rule nothing is granted
-    return or_(
-        false(), *(rule.condition for rule in rules if rule.collection == collection)
-    )
+
+    def field_predicate(field: Field) -> ColumnElement[bool]:
+        # Fields allowed regardless of the object, see `no_role_required_policy`
+        # and `reader_policy`
+        name = (key.collection.value, field)
+        if name in PUBLIC_FIELDS:
+            return true()
+        if "reader" in token.realm_access.roles and name in RBAC_MAP:
+            return true()
+        # Without a rule granting the field it is not granted
+        return or_(
+            false(),
+            *(
+                rule.condition
+                for rule in rules
+                if rule.collection == key.collection and field in rule.fields
+            ),
+        )
+
+    # Without fields to grant every object is granted
+    return and_(true(), *(field_predicate(field) for field in key.fields))
 
 
 async def granted_load_fn(
     get_token: Callable[[], Awaitable[Token]],
     policy_loader: DataLoader[int, list[Rule]],
-    keys: list[Collection],
+    keys: list[GrantedKey],
 ) -> list[ColumnElement[bool]]:
-    """Determine the clauses holding where the caller is granted the collections."""
+    """Determine the clauses holding where the caller is granted the fields."""
     token = await get_token()
     rules = await policy_loader.load(0)
-    return [granted_predicate(token, collection, rules) for collection in keys]
+    return [granted_predicate(token, key, rules) for key in keys]
 
 
 async def write_policy_load_fn(

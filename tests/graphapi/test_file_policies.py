@@ -347,3 +347,137 @@ async def test_every_file_is_either_granted_or_not(
         )
         for file_name in file_names
     }
+
+
+@pytest.fixture
+async def names_and_report_contents_reader(
+    set_auth: SetAuth, set_rules: SetRules, upload_file: UploadFile
+) -> None:
+    """A caller granted the names of every insight, but the contents of one."""
+    # Uploaded as the admin, before the caller is switched
+    for file_name in ["report.csv", "annual.csv"]:
+        content = file_name.encode()
+        assert upload_file(file_name, content, file_store="INSIGHTS").errors is None
+
+    # Granted by separate rules, as the fields of one rule share a condition
+    await set_rules("names_reader", Collection.File, {"file_name"})
+    await set_rules(
+        "contents_reader",
+        Collection.File,
+        {"text_contents"},
+        condition='{"file_store": "INSIGHTS", "file_names": ["report.csv"]}',
+    )
+    set_auth({"names_reader", "contents_reader"}, uuid4())
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db", "names_and_report_contents_reader")
+@pytest.mark.parametrize(
+    "selection,file_names",
+    [
+        ("file_name", {"report.csv", "annual.csv"}),
+        ("file_name text_contents", {"report.csv"}),
+        # Fields of the objects only
+        ("file_name __typename", {"report.csv", "annual.csv"}),
+    ],
+)
+async def test_granted_files_are_granted_every_requested_field(
+    graphapi_post: GraphAPIPost, selection: str, file_names: set[str]
+) -> None:
+    """Filtering by granted includes the files every requested field is granted on."""
+    response = graphapi_post(
+        "query { files(filter: { file_store: INSIGHTS, granted: true }) { objects { "
+        + selection
+        + " } } }"
+    )
+
+    assert response.errors is None
+    assert {f["file_name"] for f in response.data["files"]["objects"]} == file_names
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db", "names_and_report_contents_reader")
+async def test_files_not_granted_are_denied_some_requested_field(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Filtering by not granted includes the files some requested field is denied on."""
+    query = """
+        query NotGrantedFiles($contents: Boolean!) {
+          files(filter: { file_store: INSIGHTS, granted: false }) {
+            objects { file_name text_contents @include(if: $contents) }
+          }
+        }
+    """
+
+    response = graphapi_post(query, variables={"contents": False})
+    assert response.errors is None
+    assert response.data == {"files": {"objects": []}}
+
+    # Only the contents of `annual.csv` are denied, so only it is included
+    response = graphapi_post(query, variables={"contents": True})
+    assert response.data is None
+    error = one(response.errors)
+    assert error["message"] == "No policy approved the access"
+    assert error["path"] == ["files", "objects", 0, "text_contents"]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db", "names_and_report_contents_reader")
+@pytest.mark.parametrize(
+    "selection,fragments,file_names",
+    [
+        ("file_name contents: text_contents", "", {"report.csv"}),
+        (
+            "file_name ...Contents",
+            "fragment Contents on File { text_contents }",
+            {"report.csv"},
+        ),
+        ("file_name ... on File { text_contents }", "", {"report.csv"}),
+        (
+            "file_name text_contents @include(if: false)",
+            "",
+            {"report.csv", "annual.csv"},
+        ),
+        ("file_name text_contents @include(if: true)", "", {"report.csv"}),
+        ("file_name text_contents @skip(if: true)", "", {"report.csv", "annual.csv"}),
+    ],
+)
+async def test_requested_fields_are_collected_as_the_executor_does(
+    graphapi_post: GraphAPIPost, selection: str, fragments: str, file_names: set[str]
+) -> None:
+    """The requested fields see through aliases, fragments and directives."""
+    response = graphapi_post(
+        "query { files(filter: { file_store: INSIGHTS, granted: true }) { objects { "
+        + selection
+        + " } } } "
+        + fragments
+    )
+
+    assert response.errors is None
+    assert {f["file_name"] for f in response.data["files"]["objects"]} == file_names
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db", "names_and_report_contents_reader")
+async def test_requested_fields_span_every_selection_of_the_objects(
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """The fields requested under each selection of the objects are all requested."""
+    response = graphapi_post(
+        """
+        query {
+          files(filter: { file_store: INSIGHTS, granted: true }) {
+            objects { file_name }
+            contents: objects { text_contents }
+          }
+        }
+        """
+    )
+
+    assert response.errors is None
+    assert response.data == {
+        "files": {
+            "objects": [{"file_name": "report.csv"}],
+            "contents": [{"text_contents": "report.csv"}],
+        }
+    }

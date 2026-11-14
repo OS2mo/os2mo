@@ -1784,7 +1784,9 @@ def create_address(
 
 
 @pytest.fixture
-def set_rules(empty_db: db.AsyncSession) -> SetRules:
+def set_rules(
+    empty_db: db.AsyncSession, another_transaction: AnotherTransaction
+) -> SetRules:
     """Grant a role the fields of a collection, where the condition holds."""
 
     async def inner(
@@ -1793,29 +1795,30 @@ def set_rules(empty_db: db.AsyncSession) -> SetRules:
         fields: Iterable[str],
         condition: str = "true",
     ) -> None:
-        empty_db.add(
-            db.Policy(
-                name=role,
-                description=f"Grants {role} the fields a test asks about",
-                active=True,
-                selectors=[
-                    db.PolicySelector(kind=db.PolicySelectorKind.role, value=role)
-                ],
-                read_rules=[
-                    db.PolicyReadRule(
-                        collection=collection,
-                        condition=condition,
-                        graphql_version=LATEST_VERSION,
-                        fields=[
-                            db.PolicyReadRuleField(field=field)
-                            for field in sorted(fields)
-                        ],
-                    )
-                ],
+        # A request opens its own session, so the rows must be committed to it,
+        # which is done in a transaction of their own to keep the test's open
+        async with another_transaction() as (_, session):
+            session.add(
+                db.Policy(
+                    name=role,
+                    description=f"Grants {role} the fields a test asks about",
+                    active=True,
+                    selectors=[
+                        db.PolicySelector(kind=db.PolicySelectorKind.role, value=role)
+                    ],
+                    read_rules=[
+                        db.PolicyReadRule(
+                            collection=collection,
+                            condition=condition,
+                            graphql_version=LATEST_VERSION,
+                            fields=[
+                                db.PolicyReadRuleField(field=field)
+                                for field in sorted(fields)
+                            ],
+                        )
+                    ],
+                )
             )
-        )
-        # A request opens its own session, so the rows must be committed to it
-        await empty_db.commit()
 
     return inner
 
