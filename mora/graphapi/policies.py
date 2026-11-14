@@ -481,6 +481,30 @@ async def access_load_fn(
     ]
 
 
+def granted_predicate(
+    token: Token, collection: Collection, rules: Iterable[Rule]
+) -> ColumnElement[bool]:
+    """The clause holding where a rule grants the caller a field of the collection."""
+    # Admins may read everything, see `admin_policy`
+    if "admin" in token.realm_access.roles:
+        return true()
+    # Without a rule nothing is granted
+    return or_(
+        false(), *(rule.condition for rule in rules if rule.collection == collection)
+    )
+
+
+async def granted_load_fn(
+    get_token: Callable[[], Awaitable[Token]],
+    policy_loader: DataLoader[int, list[Rule]],
+    keys: list[Collection],
+) -> list[ColumnElement[bool]]:
+    """Determine the clauses holding where the caller is granted the collections."""
+    token = await get_token()
+    rules = await policy_loader.load(0)
+    return [granted_predicate(token, collection, rules) for collection in keys]
+
+
 async def write_policy_load_fn(
     session: AsyncSession,
     settings: Settings,
@@ -537,6 +561,9 @@ def get_access_loaders(
     return {
         "access_loader": DataLoader(
             load_fn=partial(access_load_fn, session, policy_loader)
+        ),
+        "granted_loader": DataLoader(
+            load_fn=partial(granted_load_fn, get_token, policy_loader)
         ),
         "write_loader": DataLoader(
             load_fn=partial(write_load_fn, session, write_policy_loader),

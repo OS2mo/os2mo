@@ -5,6 +5,7 @@ from typing import TypeAlias
 from uuid import UUID
 
 from fastramqpi.ramqp import AMQPSystem
+from sqlalchemy import ColumnElement
 from strawberry import Info
 from strawberry.dataloader import DataLoader
 from strawberry.fastapi import BaseContext
@@ -52,6 +53,7 @@ class MOLoaders:
     org_unit_loader: DataLoader[LoadKey, list[OrganisationUnitRead]]
     owner_loader: DataLoader[LoadKey, list[OwnerRead]]
     access_loader: DataLoader[AccessKey, bool]
+    granted_loader: DataLoader[db.Collection, ColumnElement[bool]]
     write_loader: DataLoader[WriteKey, bool]
     rel_unit_loader: DataLoader[LoadKey, list[RelatedUnitRead]]
     rolebinding_loader: DataLoader[LoadKey, list[RoleBindingRead]]

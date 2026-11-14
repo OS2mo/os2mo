@@ -437,6 +437,21 @@ class FileFilter:
             "file_name_contains",
         ),
     )
+    granted: bool | None = strawberry.field(
+        default=UNSET,
+        description=dedent(
+            """\
+            Filter by whether a read rule of the caller's policies grants a field.
+
+            * Omitted (`UNSET`): no filtering on grants.
+            * `true`: only files a rule grants any field on.
+            * `false`: only files no rule grants any field on.
+
+            A file a rule grants a field on may still have fields no rule grants,
+            and these are still denied when read. `null` is rejected.
+            """
+        ),
+    )
 
 
 @strawberry.input(description="Health filter.")

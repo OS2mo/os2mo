@@ -9,6 +9,7 @@ import strawberry
 from sqlalchemy import ColumnElement
 from sqlalchemy import and_
 from sqlalchemy import select
+from strawberry import UNSET
 from strawberry.types import Info
 
 from mora import db
@@ -157,6 +158,9 @@ async def file_resolver(
 ) -> ObjectsAndCursor:
     if filter is None:  # pragma: no cover
         filter = FileFilter()
+    # Until the optionality is replaced by strawberry's `Maybe`, `null` has no meaning
+    if filter.granted is None:
+        raise ValueError("The granted filter must be omitted, true or false")
 
     session: AsyncSession = info.context.session
     # We do not need the access log elsewhere for files, because this is the
@@ -180,6 +184,10 @@ async def file_resolver(
         filter=filter,
     )
     query = select(db.File.uuid).where(predicate)
+    if filter.granted is not UNSET:
+        granted_loader = info.context.dataloaders.granted_loader
+        granted = await granted_loader.load(db.Collection.File)
+        query = query.where(granted if filter.granted else ~granted)
 
     # Pagination
     query = query.order_by(db.File.uuid)
