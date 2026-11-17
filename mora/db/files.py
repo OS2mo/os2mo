@@ -6,6 +6,7 @@ from uuid import UUID
 from sqlalchemy import DateTime
 from sqlalchemy import String
 from sqlalchemy import UniqueConstraint
+from sqlalchemy import delete as sql_delete
 from sqlalchemy import select
 from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import insert
@@ -97,3 +98,17 @@ async def read(session, file_store, file_name: str) -> bytes:
     return await session.scalar(
         select(File.content).where(File.store == file_store, File.name == file_name)
     )
+
+
+async def delete(session, file_store, file_name: str) -> None:
+    """Delete *file_name* from *file_store*.
+
+    If the file does not exist, raise E_NOT_FOUND.
+    """
+    deleted = await session.scalar(
+        sql_delete(File)
+        .where(File.store == file_store.name, File.name == file_name)
+        .returning(File.uuid)
+    )
+    if deleted is None:
+        exceptions.ErrorCodes.E_NOT_FOUND(filename=file_name)
