@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 """Functions to evaluate CEL conditions."""
 
+from enum import Enum
 from functools import lru_cache
 from typing import Any
 from typing import NewType
@@ -53,7 +54,9 @@ def evaluate(condition: PolicyCEL, token: Token, args: dict[str, Any]) -> Any:
                 "uuid": str(token.uuid) if token.uuid is not None else None,
             },
             # CEL cannot accept UUIDs, datetimes, etc.
-            "args": jsonable_encoder(args),
+            # Enums are passed by name, as that is what clients send through
+            # GraphQL, e.g. `INSIGHTS` rather than the `2` it is backed by.
+            "args": jsonable_encoder(args, custom_encoder={Enum: lambda e: e.name}),
         }
     )
     result = _compile(condition).eval(activation)
