@@ -5,6 +5,7 @@ from datetime import datetime
 
 import pytest
 from more_itertools import one
+from starlette.status import HTTP_404_NOT_FOUND
 from starlette.status import HTTP_409_CONFLICT
 
 from tests.conftest import GraphAPIPost
@@ -375,3 +376,94 @@ async def test_file_timestamps(
     new_created_at, new_updated_at = read_timestamps()
     assert new_created_at == created_at
     assert new_updated_at > updated_at
+
+
+DELETE_FILE = """
+    mutation DeleteFile($file_store: FileStore!, $file_name: String!) {
+        delete_file(file_store: $file_store, file_name: $file_name)
+    }
+"""
+
+LIST_FILES = """
+    query Files($file_store: FileStore!) {
+      files(filter: {file_store: $file_store}) {
+        objects {
+          file_name
+        }
+      }
+    }
+"""
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_delete_file(
+    upload_file: UploadFile,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Ensure that a deleted file is gone, while other files are untouched."""
+    for filename in ("report.csv", "summary.csv"):
+        assert upload_file(filename, b"data").errors is None
+
+    result = graphapi_post(
+        DELETE_FILE, variables={"file_store": "EXPORTS", "file_name": "report.csv"}
+    )
+    assert result.errors is None
+    assert result.data == {"delete_file": "OK"}
+
+    result = graphapi_post(LIST_FILES, variables={"file_store": "EXPORTS"})
+    assert result.errors is None
+    assert result.data["files"]["objects"] == [{"file_name": "summary.csv"}]
+
+    # The name is free to be uploaded again, without force
+    assert upload_file("report.csv", b"new data").errors is None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_delete_file_only_deletes_from_its_store(
+    upload_file: UploadFile,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Ensure that deleting a file leaves a namesake in another store untouched."""
+    filename = "filename.csv"
+    assert upload_file(filename, b"exports", file_store="EXPORTS").errors is None
+    assert upload_file(filename, b"insights", file_store="INSIGHTS").errors is None
+
+    result = graphapi_post(
+        DELETE_FILE, variables={"file_store": "EXPORTS", "file_name": filename}
+    )
+    assert result.errors is None
+
+    result = graphapi_post(LIST_FILES, variables={"file_store": "EXPORTS"})
+    assert result.errors is None
+    assert result.data["files"]["objects"] == []
+
+    result = graphapi_post(LIST_FILES, variables={"file_store": "INSIGHTS"})
+    assert result.errors is None
+    assert result.data["files"]["objects"] == [{"file_name": filename}]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_delete_file_not_found(
+    upload_file: UploadFile,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    """Ensure that deleting a nonexistent file fails."""
+    # The file exists, but in another store
+    assert upload_file("filename.csv", b"data", file_store="INSIGHTS").errors is None
+
+    result = graphapi_post(
+        DELETE_FILE, variables={"file_store": "EXPORTS", "file_name": "filename.csv"}
+    )
+    assert result.data is None
+    error = one(result.errors)
+    assert error["message"] == "ErrorCodes.E_NOT_FOUND"
+    assert error["extensions"]["error_context"] == {
+        "description": "Not found.",
+        "error": True,
+        "error_key": "E_NOT_FOUND",
+        "filename": "filename.csv",
+        "status": HTTP_404_NOT_FOUND,
+    }
