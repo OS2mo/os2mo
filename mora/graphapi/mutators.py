@@ -2046,6 +2046,30 @@ class Mutation:
 
         return "OK"
 
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Delete a file.
+
+            Files are not bitemporal, so the file and its contents are gone for good.
+            """
+        ),
+    )
+    async def delete_file(
+        self,
+        info: MOInfo,
+        file_store: Annotated[
+            FileStore,
+            strawberry.argument(description="The filestore to delete the file from."),
+        ],
+        file_name: Annotated[
+            str,
+            strawberry.argument(description="Name of the file to delete."),
+        ],
+    ) -> str:
+        await db.files.delete(info.context.session, file_store, file_name)
+        return "OK"
+
 
 # Each mutator by name, following the mutators as they are added
 Mutator = strawberry.enum(
