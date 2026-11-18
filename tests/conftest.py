@@ -1367,6 +1367,38 @@ def role_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
 
 
 @pytest.fixture
+def title_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
+    return create_facet(
+        {
+            "user_key": "title",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
+def engagement_type_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
+    return create_facet(
+        {
+            "user_key": "engagement_type",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
+def engagement_job_function_facet(
+    create_facet: Callable[[dict[str, Any]], UUID],
+) -> UUID:
+    return create_facet(
+        {
+            "user_key": "engagement_job_function",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
 def primary_type_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
     return create_facet(
         {
@@ -1397,6 +1429,36 @@ def adresse_post_employee_class(
             "name": "Postadresse",
             "facet_uuid": str(employee_address_type_facet),
             "scope": "DAR",
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
+def ansat(
+    engagement_type_facet: UUID,
+    create_class: Callable[[dict[str, Any]], UUID],
+) -> UUID:
+    return create_class(
+        {
+            "user_key": "ansat",
+            "name": "Ansat",
+            "facet_uuid": str(engagement_type_facet),
+            "validity": {"from": "1970-01-01"},
+        }
+    )
+
+
+@pytest.fixture
+def jurist(
+    engagement_job_function_facet: UUID,
+    create_class: Callable[[dict[str, Any]], UUID],
+) -> UUID:
+    return create_class(
+        {
+            "user_key": "jurist",
+            "name": "Jurist",
+            "facet_uuid": str(engagement_job_function_facet),
             "validity": {"from": "1970-01-01"},
         }
     )
@@ -1778,6 +1840,7 @@ def read_engagement(graphapi_post: GraphAPIPost) -> Callable[[UUID], dict[str, A
                             job_function: job_function_uuid
                             primary: primary_uuid
                             explicit_manager { uuid }
+                            title { uuid }
                             extension_1
                             extension_2
                             extension_3

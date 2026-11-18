@@ -323,6 +323,7 @@ class EngagementCreateInput:
     engagement_type: strawberry.auto
     job_function: strawberry.auto
     explicit_manager: strawberry.auto
+    title: strawberry.auto
     employee: UUID | None = strawberry.field(
         deprecation_reason="Use 'person' instead. Will be removed in a future version of OS2mo."
     )
@@ -359,6 +360,7 @@ class EngagementUpdateInput:
     engagement_type: UUID | None = None
     job_function: UUID | None = None
     explicit_manager: UUID | None = UNSET
+    title: UUID | None = UNSET
 
     def to_pydantic(self) -> EngagementUpdate:
         kwargs = {
@@ -383,12 +385,14 @@ class EngagementUpdateInput:
             "job_function": self.job_function,
         }
 
-        # ONLY fraction and explicit_manager are passed conditionally to support
-        # PATCH semantics
+        # ONLY fraction, explicit_manager and title are passed conditionally to
+        # support PATCH semantics
         if self.fraction is not UNSET:
             kwargs["fraction"] = self.fraction
         if self.explicit_manager is not UNSET:
             kwargs["explicit_manager"] = self.explicit_manager
+        if self.title is not UNSET:
+            kwargs["title"] = self.title
 
         return EngagementUpdate(**kwargs)
 
