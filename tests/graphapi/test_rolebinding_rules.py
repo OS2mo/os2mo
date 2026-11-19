@@ -68,14 +68,10 @@ NURSES = (
 
 
 @pytest.fixture
-def rule(graphapi_post: GraphAPIPost, role: UUID) -> UUID:
-    response = graphapi_post(
-        CREATE_RULE,
-        {"input": {"name": "nurses", "role": str(role), "expression": NURSES}},
+def rule(create_rolebinding_rule: Callable[[dict[str, Any]], UUID], role: UUID) -> UUID:
+    return create_rolebinding_rule(
+        {"name": "nurses", "role": str(role), "expression": NURSES}
     )
-    assert response.errors is None
-    assert response.data
-    return UUID(response.data["rolebinding_rule_create"]["uuid"])
 
 
 @pytest.mark.integration_test

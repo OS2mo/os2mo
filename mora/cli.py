@@ -26,6 +26,7 @@ from mora.amqp import start_event_generator  # pragma: no cover
 from mora.db import AMQPSubsystem  # pragma: no cover
 from mora.db import PgSnapshot  # pragma: no cover
 from mora.db import create_sessionmaker  # pragma: no cover
+from mora.maintenance import merge_duplicate_classes  # pragma: no cover
 from oio_rest.config import get_settings as oio_rest_get_settings  # pragma: no cover
 
 from . import amqp as amqp_subsystem  # pragma: no cover
@@ -173,6 +174,49 @@ def start() -> None:  # pragma: no cover
     """Start the event generator."""
     with contextlib.suppress(KeyboardInterrupt):
         asyncio.run(start_event_generator(sessionmaker, settings))
+
+
+@cli.group()
+def classes():  # pragma: no cover
+    """Commands for maintaining classes."""
+
+
+@classes.command()
+@click.argument("facet-uuid", type=click.UUID)
+@click.argument("user-key")
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Roll back instead of committing.",
+)
+def merge_duplicates(facet_uuid, user_key, dry_run) -> None:  # pragma: no cover
+    """Merge classes in FACET_UUID with USER_KEY into the oldest of them.
+
+    WARNING: this changes every historic registration violating the usual
+    guarantees of the application.
+
+    Only use this when the classes are semantically the same.
+    """
+
+    async def _merge():  # pragma: no cover
+        async with sessionmaker() as session:
+            try:
+                classes = await merge_duplicate_classes(session, facet_uuid, user_key)
+            except ValueError as error:
+                raise click.ClickException(str(error)) from error
+            if len(classes) < 2:
+                click.echo(f"No duplicates of '{user_key}' in facet {facet_uuid}")
+                return
+            original, *duplicates = classes
+            merged = ", ".join(str(u) for u in duplicates)
+            if dry_run:
+                await session.rollback()
+                click.echo(f"Would merge {merged} into {original}")
+                return
+            await session.commit()
+            click.echo(f"Merged {merged} into {original}")
+
+    asyncio.run(_merge())
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -43,41 +43,6 @@ def create_org_unit(
 
 
 @pytest.fixture
-def update_org_unit(
-    graphapi_post: GraphAPIPost,
-    root_org: UUID,
-) -> Callable[[dict[str, Any]], UUID]:
-    def inner(input: dict[str, Any]) -> UUID:
-        mutate_query = """
-            mutation UpdateOrganisationUnit($input: OrganisationUnitUpdateInput!) {
-                org_unit_update(input: $input) {
-                    uuid
-                }
-            }
-        """
-        response = graphapi_post(query=mutate_query, variables={"input": input})
-        assert response.errors is None
-        assert response.data
-        return UUID(response.data["org_unit_update"]["uuid"])
-
-    return inner
-
-
-@pytest.fixture
-def org_unit_type(
-    create_class: Callable[[dict[str, Any]], UUID], org_unit_type_facet: UUID
-) -> UUID:
-    return create_class(
-        {
-            "user_key": "department",
-            "name": "Department",
-            "facet_uuid": str(org_unit_type_facet),
-            "validity": {"from": "1970-01-01", "to": None},
-        }
-    )
-
-
-@pytest.fixture
 def read_org_unit_registration(
     graphapi_post: GraphAPIPost,
     root_org: UUID,

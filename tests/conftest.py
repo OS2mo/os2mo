@@ -955,6 +955,7 @@ def create_org_unit(
         user_key: str,
         parent: UUID | None = None,
         validity: dict[str, Any] | None = None,
+        org_unit_type: UUID | None = None,
     ) -> UUID:
         mutate_query = """
             mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
@@ -971,13 +972,34 @@ def create_org_unit(
                     "user_key": user_key,
                     "parent": str(parent) if parent else None,
                     "validity": validity or {"from": "1970-01-01T00:00:00Z"},
-                    "org_unit_type": str(uuid4()),
+                    "org_unit_type": str(org_unit_type or uuid4()),
                 }
             },
         )
         assert response.errors is None
         assert response.data
         return UUID(response.data["org_unit_create"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
+def update_org_unit(
+    graphapi_post: GraphAPIPost,
+    root_org: UUID,
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        mutate_query = """
+            mutation UpdateOrganisationUnit($input: OrganisationUnitUpdateInput!) {
+                org_unit_update(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=mutate_query, variables={"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["org_unit_update"]["uuid"])
 
     return inner
 
@@ -1357,6 +1379,20 @@ def org_unit_type_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
 
 
 @pytest.fixture
+def org_unit_type(
+    create_class: Callable[[dict[str, Any]], UUID], org_unit_type_facet: UUID
+) -> UUID:
+    return create_class(
+        {
+            "user_key": "department",
+            "name": "Department",
+            "facet_uuid": str(org_unit_type_facet),
+            "validity": {"from": "1970-01-01", "to": None},
+        }
+    )
+
+
+@pytest.fixture
 def role_facet(create_facet: Callable[[dict[str, Any]], UUID]) -> UUID:
     return create_facet(
         {
@@ -1531,6 +1567,26 @@ def role(
             "validity": {"from": "1970-01-01"},
         }
     )
+
+
+@pytest.fixture
+def create_rolebinding_rule(
+    graphapi_post: GraphAPIPost,
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        mutate_query = """
+            mutation CreateRolebindingRule($input: RolebindingRuleCreateInput!) {
+                rolebinding_rule_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=mutate_query, variables={"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["rolebinding_rule_create"]["uuid"])
+
+    return inner
 
 
 @pytest.fixture
