@@ -3,8 +3,9 @@
 
 FROM quay.io/keycloak/keycloak:23.0.4-0
 
-# Mitigation for CVE-2026-114938 (Java4Shell)
-# https://github.com/keycloak/keycloak/pull/55294#issuecomment-6974203215
+# Mitigation for CVE-2026-114938 (Java4Shell). Only remove this line if the
+# image above is updated to at least 26.8.2.
+# https://www.keycloak.org/2026/11/java4shell-vulnerability-cve-2026-114938
 ENV JAVA_OPTS_APPEND=-XX:-UseBASE64Intrinsics
 
 # It is recommended to "build" Keycloak with a configuration for faster
