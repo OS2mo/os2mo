@@ -446,7 +446,7 @@ def test_address_resolver(graphapi_post: GraphAPIPost) -> None:
         "door": None,
         "floor": None,
         "house_number": "1",
-        "href": "https://adressevaelger.dk/adresser/b1f1817d-5f02-4331-b8b3-97330a5d3197",
+        "href": "https://adressevaelger.dk/adresser/b1f1817d-5f02-4331-b8b3-97330a5d3197?token=adressevaelger123",
         "latitude": 0.0,
         "longitude": 0.0,
         "municipality_code": "0751",
