@@ -2310,3 +2310,185 @@ async def test_owner_bulk_rolebindings_require_every_unit_owned(
     # An empty batch yields no checks, so it is denied rather than
     # vacuously granted
     assert_denied(create())
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_owner_writes_units_in_the_past_and_the_future(
+    create_org_unit: Callable[..., UUID],
+    set_auth: SetAuth,
+    alice: UUID,
+    make_owner: Callable[..., None],
+    graphapi_post: GraphAPIPost,
+) -> None:
+    # Alice owns `root` today, and `root` held units long gone and yet to come
+    root = create_org_unit("root")
+    past = create_org_unit(
+        "past", root, validity={"from": "2000-01-01", "to": "2010-12-31"}
+    )
+    future = create_org_unit("future", root, validity={"from": "2100-01-01"})
+    unowned_future = create_org_unit("unowned", validity={"from": "2100-01-01"})
+    make_owner(alice, org_unit=root)
+
+    def rename(unit: UUID, validity: dict[str, str]) -> GQLResponse:
+        return graphapi_post(
+            """
+            mutation UpdateOU($input: OrganisationUnitUpdateInput!) {
+                org_unit_update(input: $input) { uuid }
+            }
+            """,
+            variables=jsonable_encoder(
+                {"input": {"uuid": unit, "name": "Renamed", "validity": validity}}
+            ),
+        )
+
+    def terminate(unit: UUID, to: str) -> GQLResponse:
+        return graphapi_post(
+            """
+            mutation TerminateOU($input: OrganisationUnitTerminateInput!) {
+                org_unit_terminate(input: $input) { uuid }
+            }
+            """,
+            variables=jsonable_encoder({"input": {"uuid": unit, "to": to}}),
+        )
+
+    in_the_past = {"from": "2005-01-01", "to": "2010-12-31"}
+    in_the_future = {"from": "2101-01-01"}
+
+    # A stranger owns nothing, at any time
+    set_auth(role="owner", user_uuid=uuid4())
+    assert_denied(rename(past, in_the_past))
+    assert_denied(rename(future, in_the_future))
+    assert_denied(terminate(future, "2102-01-01"))
+
+    # Alice owns the units of `root` from before and after today
+    set_auth(role="owner", user_uuid=alice)
+    assert_granted(rename(past, in_the_past))
+    assert_granted(rename(future, in_the_future))
+    assert_granted(terminate(future, "2102-01-01"))
+    # ... but not units outside of what she owns
+    assert_denied(rename(unowned_future, in_the_future))
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_owner_writes_details_in_the_future(
+    create_org_unit: Callable[..., UUID],
+    create_manager_raw: Callable[[dict[str, Any]], UUID],
+    create_ituser: Callable[[dict[str, Any]], UUID],
+    set_auth: SetAuth,
+    alice: UUID,
+    bob: UUID,
+    itsystem: UUID,
+    make_owner: Callable[..., None],
+    graphapi_post: GraphAPIPost,
+) -> None:
+    # Alice owns `root` and Bob today; the details only start in the future
+    root = create_org_unit("root")
+    future = create_org_unit("future", root, validity={"from": "2100-01-01"})
+    make_owner(alice, org_unit=root)
+    make_owner(alice, person=bob)
+    manager = create_manager_raw(
+        {
+            "manager_level": str(uuid4()),
+            "manager_type": str(uuid4()),
+            "responsibility": [],
+            "org_unit": str(future),
+            "validity": {"from": "2100-01-01"},
+        }
+    )
+    ituser = create_ituser(
+        {
+            "user_key": "bob",
+            "itsystem": str(itsystem),
+            "person": str(bob),
+            "validity": {"from": "2100-01-01"},
+        }
+    )
+
+    def edit_manager() -> GQLResponse:
+        return graphapi_post(
+            """
+            mutation UpdateManager($input: ManagerUpdateInput!) {
+                manager_update(input: $input) { uuid }
+            }
+            """,
+            variables=jsonable_encoder(
+                {"input": {"uuid": manager, "validity": {"from": "2101-01-01"}}}
+            ),
+        )
+
+    def edit_ituser() -> GQLResponse:
+        return graphapi_post(
+            """
+            mutation UpdateITUser($input: ITUserUpdateInput!) {
+                ituser_update(input: $input) { uuid }
+            }
+            """,
+            variables=jsonable_encoder(
+                {
+                    "input": {
+                        "uuid": ituser,
+                        "user_key": "changed",
+                        "validity": {"from": "2101-01-01"},
+                    }
+                }
+            ),
+        )
+
+    set_auth(role="owner", user_uuid=uuid4())
+    assert_denied(edit_manager())
+    assert_denied(edit_ituser())
+
+    set_auth(role="owner", user_uuid=alice)
+    assert_granted(edit_manager())
+    assert_granted(edit_ituser())
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_owner_is_only_an_owner_while_owning_today(
+    create_org_unit: Callable[..., UUID],
+    create_owner: Callable[[dict[str, Any]], UUID],
+    set_auth: SetAuth,
+    alice: UUID,
+    bob: UUID,
+    graphapi_post: GraphAPIPost,
+) -> None:
+    # Alice owned `root` in the past, Bob will own it in the future
+    root = create_org_unit("root")
+    child = create_org_unit("child", root)
+    future = create_org_unit("future", root, validity={"from": "2100-01-01"})
+    create_owner(
+        {
+            "owner": str(alice),
+            "org_unit": str(root),
+            "validity": {"from": "2000-01-01", "to": "2010-12-31"},
+        }
+    )
+    create_owner(
+        {
+            "owner": str(bob),
+            "org_unit": str(root),
+            "validity": {"from": "2100-01-01"},
+        }
+    )
+
+    def rename(unit: UUID, validity: dict[str, str]) -> GQLResponse:
+        return graphapi_post(
+            """
+            mutation UpdateOU($input: OrganisationUnitUpdateInput!) {
+                org_unit_update(input: $input) { uuid }
+            }
+            """,
+            variables=jsonable_encoder(
+                {"input": {"uuid": unit, "name": "Renamed", "validity": validity}}
+            ),
+        )
+
+    # Neither owns `root` today, so neither may write any of it, at any time
+    for owner in (alice, bob):
+        set_auth(role="owner", user_uuid=owner)
+        assert_denied(rename(child, {"from": "2005-01-01", "to": "2010-12-31"}))
+        assert_denied(rename(child, {"from": "2021-01-01"}))
+        assert_denied(rename(future, {"from": "2101-01-01"}))
