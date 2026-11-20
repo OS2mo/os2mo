@@ -131,7 +131,12 @@ class DARAddress(ResolvedAddress):
     # Links
     @strawberry.field
     async def href(self, root: "DARAddress") -> str:
-        return f"https://adressevaelger.dk/adresser/{root.value}"
+        # Adressevaelger rejects requests without a token. Until KDS introduces
+        # user management any token works, and KDS recommends this one, which is
+        # also the default of FastRAMQPI's AsyncDARClient.
+        return (
+            f"https://adressevaelger.dk/adresser/{root.value}?token=adressevaelger123"
+        )
 
     @strawberry.field
     async def streetmap_href(self, root: "DARAddress") -> str | None:
