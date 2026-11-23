@@ -152,13 +152,16 @@ class IntrospectionQueryCacheExtension(SchemaExtension):
         https://strawberry.rocks/docs/guides/custom-extensions.
         """
         execution_context = self.execution_context
-        cache_key = (execution_context.schema, execution_context.query)
         if (
-            execution_context.operation_name == "IntrospectionQuery"
-            and not execution_context.variables
+            execution_context.operation_name != "IntrospectionQuery"
+            or execution_context.variables
         ):
-            with suppress(KeyError):  # pragma: no cover
-                execution_context.result = self.cache[cache_key]
+            yield
+            return None
+
+        cache_key = (execution_context.schema, execution_context.query)
+        with suppress(KeyError):  # pragma: no cover
+            execution_context.result = self.cache[cache_key]
         yield
         self.cache.setdefault(cache_key, execution_context.result)
 
