@@ -33,7 +33,7 @@ async def test_introspection_is_public(
     set_auth(None, None)
 
     query = """
-    query {
+    query IntrospectionQuery {
       __typename
       __schema {
         query_type: queryType {
