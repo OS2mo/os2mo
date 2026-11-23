@@ -2,12 +2,14 @@
 # SPDX-License-Identifier: MPL-2.0
 from uuid import UUID
 
+from sqlalchemy import func
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from mora.db import OrganisationFunktionRegistrering
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
+from mora.db import OrganisationFunktionTilsGyldighed
 
 
 async def find_related_org_functions(session: AsyncSession, person: UUID) -> set[UUID]:
@@ -71,4 +73,35 @@ async def find_related_org_functions(session: AsyncSession, person: UUID) -> set
     related = directly_related.union(indirectly_related)
 
     result = await session.scalars(select(related.c.organisationfunktion_id))
+    return set(result)
+
+
+async def find_active_org_functions(
+    session: AsyncSession, uuids: set[UUID]
+) -> set[UUID]:
+    """
+    Find the org functions which are active now or in the future.
+
+    Args:
+        session: The database session to query in.
+        uuids: UUIDs of the org functions to check.
+
+    Returns:
+        UUIDs of the active org functions among those given.
+    """
+    result = await session.scalars(
+        select(OrganisationFunktionRegistrering.organisationfunktion_id)
+        .distinct()
+        .join(OrganisationFunktionTilsGyldighed)
+        .where(
+            OrganisationFunktionRegistrering.organisationfunktion_id.in_(uuids),
+            OrganisationFunktionRegistrering.registrering_period.contains(func.now()),
+            OrganisationFunktionRegistrering.lifecycle != "Slettet",
+            OrganisationFunktionTilsGyldighed.is_active(),
+            # Active at some point from now on
+            OrganisationFunktionTilsGyldighed.virkning_period.overlaps(
+                func.tstzrange(func.now(), None)
+            ),
+        )
+    )
     return set(result)
