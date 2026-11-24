@@ -12,6 +12,7 @@ from sqlalchemy import select
 from sqlalchemy import type_coerce
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from mora import exceptions
 from mora.db import Bruger
 from mora.db import BrugerAttrEgenskaber
 from mora.db import BrugerAttrUdvidelser
@@ -463,3 +464,68 @@ async def delete_person(session: AsyncSession, person: UUID) -> None:
         delete(BrugerRegistrering).where(BrugerRegistrering.bruger_id == person)
     )
     await session.execute(delete(Bruger).where(Bruger.id == person))
+
+
+async def purge_employee(session: AsyncSession, person: UUID) -> None:
+    """
+    Purge a person and every org function belonging to them.
+
+    The person and their org functions are deleted in all registrations, and
+    removed from the manager roles they have held. Nothing is deleted if any
+    related org function is refused, i.e. is active now or in the future, or
+    does not belong to the person alone.
+
+    The transaction is not committed, so the purge can be part of a larger
+    one.
+
+    Args:
+        session: The database session to purge in.
+        person: UUID of the person.
+
+    Raises:
+        HTTPException: E_USER_NOT_FOUND if the person does not exist, or
+            V_PURGE_EMPLOYEE_REFUSED, listing the refused org functions, if
+            any are refused.
+    """
+    if await session.scalar(select(Bruger.id).where(Bruger.id == person)) is None:
+        exceptions.ErrorCodes.E_USER_NOT_FOUND(employee_uuid=person)
+
+    related = await find_related_org_functions(session, person)
+    org_function_data = await fetch_org_function_data(session, related)
+    manager_roles = {
+        uuid
+        for uuid, org_function in org_function_data.items()
+        if org_function.funktionsnavn == "Leder"
+    }
+    decisions = decide_purge(
+        org_function_data,
+        own=find_own_org_functions(person, org_function_data),
+        active=await find_active_org_functions(session, related),
+        active_manager_roles_held_by_person=(
+            await find_active_manager_roles_held_by_person(
+                session, person, manager_roles
+            )
+        ),
+    )
+
+    refused = [
+        {
+            "uuid": uuid,
+            "type": org_function_data[uuid].funktionsnavn,
+            "reason": decision,
+        }
+        for uuid, decision in sorted(decisions.items())
+        if decision in (PurgeDecision.REFUSE_ACTIVE, PurgeDecision.REFUSE_FOREIGN)
+    ]
+    if refused:
+        exceptions.ErrorCodes.V_PURGE_EMPLOYEE_REFUSED(refused=refused)
+
+    deleted = {
+        uuid for uuid, decision in decisions.items() if decision == PurgeDecision.DELETE
+    }
+    vacated = {
+        uuid for uuid, decision in decisions.items() if decision == PurgeDecision.VACATE
+    }
+    await delete_org_functions(session, deleted)
+    await vacate_manager_roles(session, vacated, removed={person} | deleted)
+    await delete_person(session, person)

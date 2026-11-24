@@ -65,6 +65,10 @@ class ErrorCodes(Enum):
         400,
         "Cannot terminate unit with active addresses.",
     )
+    V_PURGE_EMPLOYEE_REFUSED = (
+        400,
+        "Cannot purge employee with active or foreign related org functions.",
+    )
     V_DATE_OUTSIDE_ORG_UNIT_RANGE = (
         400,
         "Date range exceeds validity range of associated org unit.",
