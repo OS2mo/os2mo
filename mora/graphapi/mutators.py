@@ -1698,16 +1698,20 @@ class Mutation:
 
         # Sadly, we have to select the listener, because PostgreSQL does not
         # support returning values from tables other than the one being deleted
-        listener = await session.scalar(
-            select(db.Listener)
-            .join(db.Event)
-            .where(
-                db.Event.pk == input.token.uuid,
+        row = (
+            await session.execute(
+                select(db.Listener, db.Actor.username)
+                .join(db.Event)
+                .join(db.Actor, db.Actor.uuid == db.Listener.owner)
+                .where(
+                    db.Event.pk == input.token.uuid,
+                )
             )
-        )
+        ).one_or_none()
 
-        if not listener:  # pragma: no cover
+        if row is None:  # pragma: no cover
             return True
+        listener, owner_username = row
 
         result = await session.execute(
             delete(db.Event).where(
@@ -1720,7 +1724,7 @@ class Mutation:
 
         if result.rowcount:
             METRIC_ACKNOWLEDGED_EVENTS.labels(
-                owner=listener.owner,
+                owner=owner_username,
                 user_key=listener.user_key,
                 ns=listener.namespace_fk,
                 routing_key=listener.routing_key,

@@ -1240,31 +1240,31 @@ def test_metrics(
         in metrics
     )
     assert (
-        f'os2mo_event_acknowledged_total{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",user_key="uk"}} {ACK_EVENTS}.0'
+        f'os2mo_event_acknowledged_total{{ns="metric_test",owner="bruce",routing_key="rk",user_key="uk"}} {ACK_EVENTS}.0'
         in metrics
     )
     assert (
-        f'os2mo_events{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",silenced="true",user_key="uk"}} 1.0'
+        'os2mo_events{ns="metric_test",owner="bruce",routing_key="rk",silenced="true",user_key="uk"} 1.0'
         in metrics
     )
     assert (
-        f'os2mo_events{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",silenced="false",user_key="uk"}} {AMOUNT - ACK_EVENTS - 1}.0'
+        f'os2mo_events{{ns="metric_test",owner="bruce",routing_key="rk",silenced="false",user_key="uk"}} {AMOUNT - ACK_EVENTS - 1}.0'
         in metrics
     )  # -1 for the silenced event
     assert (
-        f'os2mo_events{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",silenced="false",user_key="uk2"}} {AMOUNT}.0'
+        f'os2mo_events{{ns="metric_test",owner="bruce",routing_key="rk",silenced="false",user_key="uk2"}} {AMOUNT}.0'
         in metrics
     )
     assert (
-        f'os2mo_event_oldest{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",silenced="false",user_key="uk2"}}'
+        'os2mo_event_oldest{ns="metric_test",owner="bruce",routing_key="rk",silenced="false",user_key="uk2"}'
         in metrics
     )
     assert (
-        f'os2mo_event_oldest{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",silenced="false",user_key="uk"}}'
+        'os2mo_event_oldest{ns="metric_test",owner="bruce",routing_key="rk",silenced="false",user_key="uk"}'
         in metrics
     )
     assert (
-        f'os2mo_event_oldest{{ns="metric_test",owner="{str(BRUCE_UUID)}",routing_key="rk",silenced="true",user_key="uk"}}'
+        'os2mo_event_oldest{ns="metric_test",owner="bruce",routing_key="rk",silenced="true",user_key="uk"}'
         in metrics
     )
 
@@ -1392,8 +1392,8 @@ def test_metrics_empty_namespace(
     user_key = "user_key"
 
     # Expected metric names
-    unsilenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(BRUCE_UUID)}",routing_key="{routing_key}",silenced="false",user_key="{user_key}"}}'
-    silenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(BRUCE_UUID)}",routing_key="{routing_key}",silenced="true",user_key="{user_key}"}}'
+    unsilenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="bruce",routing_key="{routing_key}",silenced="false",user_key="{user_key}"}}'
+    silenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="bruce",routing_key="{routing_key}",silenced="true",user_key="{user_key}"}}'
 
     response = declare_namespace(graphapi_post, namespace)
     assert response.data is not None
@@ -1435,7 +1435,7 @@ def test_metrics_goes_to_zero(
     user_key = "user_key"
 
     # Expected metric name
-    metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(BRUCE_UUID)}",routing_key="{routing_key}",silenced="false",user_key="{user_key}"}}'
+    metric_name = f'os2mo_events{{ns="{namespace}",owner="bruce",routing_key="{routing_key}",silenced="false",user_key="{user_key}"}}'
 
     # Declare our namespace
     response = declare_namespace(graphapi_post, namespace)
@@ -1478,8 +1478,8 @@ def test_metrics_silenced_goes_to_zero(
     payload = "payload"
 
     # Expected metric names
-    unsilenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(BRUCE_UUID)}",routing_key="{routing_key}",silenced="false",user_key="{user_key}"}}'
-    silenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="{str(BRUCE_UUID)}",routing_key="{routing_key}",silenced="true",user_key="{user_key}"}}'
+    unsilenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="bruce",routing_key="{routing_key}",silenced="false",user_key="{user_key}"}}'
+    silenced_metric_name = f'os2mo_events{{ns="{namespace}",owner="bruce",routing_key="{routing_key}",silenced="true",user_key="{user_key}"}}'
 
     # Declare our namespace
     response = declare_namespace(graphapi_post, namespace)

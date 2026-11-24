@@ -22,6 +22,7 @@ from sqlalchemy.orm import relationship
 import mora.db
 
 from . import AsyncSession
+from ._access_log import Actor
 from ._common import Base
 
 # If this is changed, remember to update the documentation.
@@ -193,6 +194,7 @@ def setup_event_metrics(instrumentator: Instrumentator) -> None:
             query = (
                 select(
                     Listener,
+                    Actor.username,
                     func.min(
                         sqlalchemy.case(
                             (Event.silenced == sqlalchemy.false(), Event.created_at)
@@ -205,14 +207,15 @@ def setup_event_metrics(instrumentator: Instrumentator) -> None:
                     ),
                 )
                 .join(Listener.events)
-                .group_by(Listener.pk)
+                .join(Actor, Actor.uuid == Listener.owner)
+                .group_by(Listener.pk, Actor.username)
             )
 
             result = await session.execute(query)
-            for listener, active, silenced in result.all():
+            for listener, owner_username, active, silenced in result.all():
                 if active is not None:
                     METRIC_OLD_EVENTS.labels(
-                        owner=listener.owner,
+                        owner=owner_username,
                         user_key=listener.user_key,
                         ns=listener.namespace_fk,
                         routing_key=listener.routing_key,
@@ -220,7 +223,7 @@ def setup_event_metrics(instrumentator: Instrumentator) -> None:
                     ).set(int(active.timestamp()))
                 if silenced is not None:
                     METRIC_OLD_EVENTS.labels(
-                        owner=listener.owner,
+                        owner=owner_username,
                         user_key=listener.user_key,
                         ns=listener.namespace_fk,
                         routing_key=listener.routing_key,
@@ -239,6 +242,7 @@ def setup_event_metrics(instrumentator: Instrumentator) -> None:
             query = (
                 select(
                     Listener,
+                    Actor.username,
                     func.count(Event.pk).filter(Event.silenced == sqlalchemy.true()),
                     func.count(Event.pk).filter(Event.silenced == sqlalchemy.false()),
                 )
@@ -248,21 +252,22 @@ def setup_event_metrics(instrumentator: Instrumentator) -> None:
                     Event,
                     Listener.pk == Event.listener_fk,
                 )
-                .group_by(Listener.pk)
+                .join(Actor, Actor.uuid == Listener.owner)
+                .group_by(Listener.pk, Actor.username)
             )
 
             result = await session.execute(query)
 
-            for listener, silenced, active in result.all():
+            for listener, owner_username, silenced, active in result.all():
                 METRIC_EVENTS.labels(
-                    owner=listener.owner,
+                    owner=owner_username,
                     user_key=listener.user_key,
                     ns=listener.namespace_fk,
                     routing_key=listener.routing_key,
                     silenced="true",  # prometheus does not have booleans
                 ).set(silenced)
                 METRIC_EVENTS.labels(
-                    owner=listener.owner,
+                    owner=owner_username,
                     user_key=listener.user_key,
                     ns=listener.namespace_fk,
                     routing_key=listener.routing_key,
