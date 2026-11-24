@@ -164,6 +164,26 @@ class Engagement:
         deprecation_reason="Use 'job_function_response' instead. Will be removed in a future version of OS2mo.",
     )
 
+    title: Response[LazyClass] | None = strawberry.field(  # type: ignore
+        resolver=lambda root: Response(model=ClassRead, uuid=root.title_uuid)
+        if root.title_uuid
+        else None,
+        description=dedent(
+            """
+            The title of the engagement.
+
+            This field holds the informal title, while the `job_function` field holds the formal, employment-technical job position.
+
+            The class is expected to be from the `title` facet.
+
+            Examples:
+            * `"Software developer"`
+            * `"Employed as Software Developer"`
+            * `"Software architect"`
+            """
+        ),
+    )
+
     primary_response: Response[LazyClass] | None = strawberry.field(  # type: ignore
         resolver=lambda root: Response(model=ClassRead, uuid=root.primary_uuid)
         if root.primary_uuid

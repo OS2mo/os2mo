@@ -602,6 +602,11 @@ class EngagementUpsert(UUIDBase):
         description="UUID of the explicit manager related to the engagement.",
     )
 
+    title: UUID | None = Field(
+        default=None,
+        description="UUID of the title of the engagement.",
+    )
+
     # TODO: Remove employee in a future version of GraphQL
     employee: UUID | None = Field(description="UUID of the related employee.")
     person: UUID | None = Field(description="UUID of the related employee.")
@@ -633,6 +638,8 @@ class EngagementUpsert(UUIDBase):
             data_dict["fraction"] = self.fraction
         if "explicit_manager" in self.__fields_set__:
             data_dict["explicit_manager"] = gen_uuid(self.explicit_manager)
+        if "title" in self.__fields_set__:
+            data_dict["title"] = gen_uuid(self.title)
         return data_dict
 
 
@@ -678,7 +685,7 @@ class EngagementUpdate(EngagementUpsert):
         return {
             k: v
             for k, v in data_dict.items()
-            if (v is not None) or k in ("fraction", "explicit_manager")
+            if (v is not None) or k in ("fraction", "explicit_manager", "title")
         }
 
 
