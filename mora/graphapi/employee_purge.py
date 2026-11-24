@@ -13,6 +13,7 @@ from sqlalchemy import type_coerce
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from mora import exceptions
+from mora.amqp import _lora_to_mo
 from mora.db import Bruger
 from mora.db import BrugerAttrEgenskaber
 from mora.db import BrugerAttrUdvidelser
@@ -26,6 +27,7 @@ from mora.db import OrganisationFunktionRegistrering
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
 from mora.db import OrganisationFunktionTilsGyldighed
+from mora.db.events import add_event
 
 
 class OrgFunctionData(BaseModel):
@@ -49,6 +51,22 @@ class OrgFunctionData(BaseModel):
     tilknyttedebrugere: set[UUID] = set()
     tilknyttedepersoner: set[UUID] = set()
     tilknyttedefunktioner: set[UUID] = set()
+
+
+class PurgedOrgFunction(BaseModel):
+    """
+    An org function deleted or vacated by the purge.
+
+    Attributes:
+        uuid: UUID of the org function.
+        function_name: The kind of org function, e.g. "Engagement" or "Leder".
+    """
+
+    class Config:
+        frozen = True
+
+    uuid: UUID
+    function_name: str
 
 
 class PurgeDecision(StrEnum):
@@ -466,12 +484,45 @@ async def delete_person(session: AsyncSession, person: UUID) -> None:
     await session.execute(delete(Bruger).where(Bruger.id == person))
 
 
+async def send_purge_events(
+    session: AsyncSession, person: UUID, org_functions: set[PurgedOrgFunction]
+) -> None:
+    """
+    Send an event for the purged person and each org function changed.
+
+    MO sends events for new registrations, but the purge deletes rows instead
+    of adding registrations, so it must send its own. A listener reading the
+    person or a deleted org function finds it gone, as after a deletion.
+
+    Only GraphQL events are sent. They are part of the transaction, so they
+    are delivered after the purge is committed, and not at all if it is
+    rolled back.
+
+    Args:
+        session: The database session to add the events in.
+        person: UUID of the purged person.
+        org_functions: The deleted and vacated org functions.
+    """
+    await add_event(session, namespace="mo", routing_key="person", subject=str(person))
+    for org_function in org_functions:
+        # MO sends no events for org functions of other kinds either
+        if org_function.function_name not in _lora_to_mo:
+            continue
+        await add_event(
+            session,
+            namespace="mo",
+            routing_key=_lora_to_mo[org_function.function_name],
+            subject=str(org_function.uuid),
+        )
+
+
 async def purge_employee(session: AsyncSession, person: UUID) -> None:
     """
     Purge a person and every org function belonging to them.
 
     The person and their org functions are deleted in all registrations, and
-    removed from the manager roles they have held. Nothing is deleted if any
+    removed from the manager roles they have held. An event is sent for each
+    of them. Nothing is deleted if any
     related org function is refused, i.e. is active now or in the future, or
     does not belong to the person alone.
 
@@ -529,3 +580,13 @@ async def purge_employee(session: AsyncSession, person: UUID) -> None:
     await delete_org_functions(session, deleted)
     await vacate_manager_roles(session, vacated, removed={person} | deleted)
     await delete_person(session, person)
+    await send_purge_events(
+        session,
+        person,
+        {
+            PurgedOrgFunction(
+                uuid=uuid, function_name=org_function_data[uuid].funktionsnavn
+            )
+            for uuid in deleted | vacated
+        },
+    )
