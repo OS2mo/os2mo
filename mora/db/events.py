@@ -57,9 +57,10 @@ class Namespace(Base):
     __tablename__ = "event_namespace"
 
     name: Mapped[str] = mapped_column(primary_key=True)
-    # Most often, this is the integration UUID from Keycloak. It can be the
-    # UUID of a user as well.
-    owner: Mapped[UUID]
+    # The actor owning the namespace; most often an integration.
+    owner: Mapped[UUID] = mapped_column(
+        ForeignKey("actor.uuid", name="event_namespace_owner_fkey")
+    )
     public: Mapped[bool]
     listeners: Mapped[list["Listener"]] = relationship(back_populates="namespace")
 
@@ -73,7 +74,9 @@ class Listener(Base):
     user_key: Mapped[str]
     # Owner is often the same as the namespace owner, but might differ with
     # public namespaces.
-    owner: Mapped[UUID]
+    owner: Mapped[UUID] = mapped_column(
+        ForeignKey("actor.uuid", name="event_listener_owner_fkey")
+    )
     routing_key: Mapped[str]
 
     namespace_fk: Mapped[str] = mapped_column(ForeignKey("event_namespace.name"))

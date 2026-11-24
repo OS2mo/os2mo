@@ -218,12 +218,14 @@ async def test_a_listener_gets_the_fields_of_the_rules_matching_it(
     """A listener is matched by its filter, reaching into its namespace."""
     empty_db.add_all(
         [
-            Namespace(name="mine", owner=uuid4(), public=False),
-            Namespace(name="theirs", owner=uuid4(), public=False),
+            Namespace(name="mine", owner=BRUCE_UUID, public=False),
+            Namespace(name="theirs", owner=BRUCE_UUID, public=False),
         ]
     )
     mine, theirs = (
-        Listener(user_key="listener", owner=uuid4(), routing_key="key", namespace_fk=ns)
+        Listener(
+            user_key="listener", owner=BRUCE_UUID, routing_key="key", namespace_fk=ns
+        )
         for ns in ("mine", "theirs")
     )
     empty_db.add_all([mine, theirs])
@@ -273,12 +275,12 @@ async def test_a_batch_spans_collections_keyed_by_uuid_and_by_name(
     """A namespace is keyed by its name, beside listeners keyed by their uuid."""
     empty_db.add_all(
         [
-            Namespace(name="mine", owner=uuid4(), public=False),
-            Namespace(name="theirs", owner=uuid4(), public=False),
+            Namespace(name="mine", owner=BRUCE_UUID, public=False),
+            Namespace(name="theirs", owner=BRUCE_UUID, public=False),
         ]
     )
     listener = Listener(
-        user_key="listener", owner=uuid4(), routing_key="key", namespace_fk="mine"
+        user_key="listener", owner=BRUCE_UUID, routing_key="key", namespace_fk="mine"
     )
     empty_db.add(listener)
     empty_db.add(
