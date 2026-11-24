@@ -6,12 +6,21 @@ from uuid import UUID
 
 from pydantic import BaseModel
 from sqlalchemy import Text
+from sqlalchemy import delete
 from sqlalchemy import func
 from sqlalchemy import select
 from sqlalchemy import type_coerce
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from mora.db import Bruger
+from mora.db import BrugerAttrEgenskaber
+from mora.db import BrugerAttrUdvidelser
+from mora.db import BrugerRegistrering
+from mora.db import BrugerRelation
+from mora.db import BrugerTilsGyldighed
+from mora.db import OrganisationFunktion
 from mora.db import OrganisationFunktionAttrEgenskaber
+from mora.db import OrganisationFunktionAttrUdvidelser
 from mora.db import OrganisationFunktionRegistrering
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
@@ -348,3 +357,109 @@ def decide_purge(
         decisions[uuid] = decision
 
     return decisions
+
+
+async def delete_org_functions(session: AsyncSession, uuids: set[UUID]) -> None:
+    """
+    Delete org functions, in all their registrations.
+
+    The rows are deleted directly in the database, bypassing the bitemporal
+    history, so the org functions disappear as if they had never existed.
+
+    The transaction is not committed, so the deletion can be part of a larger
+    one.
+
+    Args:
+        session: The database session to delete in.
+        uuids: UUIDs of the org functions to delete.
+    """
+    registrations = select(OrganisationFunktionRegistrering.id).where(
+        OrganisationFunktionRegistrering.organisationfunktion_id.in_(uuids)
+    )
+    # The foreign keys do not cascade, so the rows must be deleted from the
+    # leaves up. The validity rows go after the relation and attribute rows,
+    # as a trigger on them updates those rows on every change.
+    for table in (
+        OrganisationFunktionRelation,
+        OrganisationFunktionAttrEgenskaber,
+        OrganisationFunktionAttrUdvidelser,
+        OrganisationFunktionTilsGyldighed,
+    ):
+        await session.execute(
+            delete(table).where(
+                table.organisationfunktion_registrering_id.in_(registrations)
+            )
+        )
+    await session.execute(
+        delete(OrganisationFunktionRegistrering).where(
+            OrganisationFunktionRegistrering.organisationfunktion_id.in_(uuids)
+        )
+    )
+    await session.execute(
+        delete(OrganisationFunktion).where(OrganisationFunktion.id.in_(uuids))
+    )
+
+
+async def vacate_manager_roles(
+    session: AsyncSession, uuids: set[UUID], removed: set[UUID]
+) -> None:
+    """
+    Remove the purged person and their engagements from manager roles.
+
+    A manager role points at the person holding it, and at the engagement
+    they hold it through. Both are removed, in every registration, so the
+    manager role does not point at anything deleted.
+
+    The transaction is not committed, so the vacating can be part of a larger
+    one.
+
+    Args:
+        session: The database session to delete in.
+        uuids: UUIDs of the manager roles to vacate.
+        removed: UUIDs of what is purged: the person and the deleted org
+            functions. A manager role may point at both, as it is held by the
+            person through one of their engagements.
+    """
+    registrations = select(OrganisationFunktionRegistrering.id).where(
+        OrganisationFunktionRegistrering.organisationfunktion_id.in_(uuids)
+    )
+    await session.execute(
+        delete(OrganisationFunktionRelation).where(
+            OrganisationFunktionRelation.organisationfunktion_registrering_id.in_(
+                registrations
+            ),
+            OrganisationFunktionRelation.rel_maal_uuid.in_(removed),
+        )
+    )
+
+
+async def delete_person(session: AsyncSession, person: UUID) -> None:
+    """
+    Delete a person, in all their registrations.
+
+    The transaction is not committed, so the deletion can be part of a larger
+    one.
+
+    Args:
+        session: The database session to delete in.
+        person: UUID of the person.
+    """
+    registrations = select(BrugerRegistrering.id).where(
+        BrugerRegistrering.bruger_id == person
+    )
+    # The foreign keys do not cascade, so the rows must be deleted from the
+    # leaves up. The validity rows go after the relation and attribute rows,
+    # as a trigger on them updates those rows on every change.
+    for table in (
+        BrugerRelation,
+        BrugerAttrEgenskaber,
+        BrugerAttrUdvidelser,
+        BrugerTilsGyldighed,
+    ):
+        await session.execute(
+            delete(table).where(table.bruger_registrering_id.in_(registrations))
+        )
+    await session.execute(
+        delete(BrugerRegistrering).where(BrugerRegistrering.bruger_id == person)
+    )
+    await session.execute(delete(Bruger).where(Bruger.id == person))
