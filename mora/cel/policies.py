@@ -52,6 +52,7 @@ def evaluate(condition: PolicyCEL, token: Token, args: dict[str, Any]) -> Any:
         {
             "token": {
                 "uuid": str(token.uuid) if token.uuid is not None else None,
+                "username": token.preferred_username,
             },
             # CEL cannot accept UUIDs, datetimes, etc.
             # Enums are passed by name, as that is what clients send through

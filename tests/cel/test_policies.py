@@ -34,6 +34,14 @@ from tests.conftest import BRUCE_UUID
             f'token.uuid != "{BRUCE_UUID}" ? {{"user_keys": ["email"]}} : {{}}',
             {},
         ),
+        (
+            'token.username == "bruce" ? {"user_keys": ["email"]} : {}',
+            {"user_keys": ["email"]},
+        ),
+        (
+            'token.username != "bruce" ? {"user_keys": ["email"]} : {}',
+            {},
+        ),
     ],
 )
 async def test_a_condition_yields_the_filter_it_names(

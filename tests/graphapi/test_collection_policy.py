@@ -467,6 +467,12 @@ async def test_a_condition_unknown_of_an_object_grants_nothing_on_it(
         # A rule yielding true reaches every object of its collection, false none
         ("true", {"mine@example.org", "theirs@example.org", "11111111"}),
         ("false", set()),
+        # A rule may match on the caller's username
+        (
+            'token.username == "bruce"',
+            {"mine@example.org", "theirs@example.org", "11111111"},
+        ),
+        ('token.username != "bruce"', set()),
         (
             '{"address_type": {"scope": ["EMAIL"]}}',
             {"mine@example.org", "theirs@example.org"},
