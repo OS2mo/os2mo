@@ -332,12 +332,12 @@ async def test_a_rolebinding_rule_is_matched_by_its_current_revision(
     empty_db: AsyncSession, role: UUID
 ) -> None:
     """A rule whose name changed no longer matches its former name."""
-    actor = Actor(actor=uuid4(), username="bruce")
+    actor = Actor(uuid=uuid4(), username="bruce")
     renamed, kept = RolebindingRule(), RolebindingRule()
     empty_db.add_all([actor, renamed, kept])
     await empty_db.flush()
     revision = {
-        "actor": actor.actor,
+        "actor": actor.uuid,
         "role": role,
         "expression": "true",
         "active": True,

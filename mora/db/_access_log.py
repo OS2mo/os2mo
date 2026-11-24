@@ -23,7 +23,7 @@ from ._common import Base
 class Actor(Base):
     __tablename__ = "actor"
 
-    actor: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
+    uuid: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
     username: Mapped[str] = mapped_column(Text, nullable=False)
 
 

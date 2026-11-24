@@ -39,9 +39,9 @@ async def actor_name_resolver(
     Returns:
         List of actor names found via the lookup.
     """
-    query = select(ActorTable).where(ActorTable.actor.in_(keys))
+    query = select(ActorTable).where(ActorTable.uuid.in_(keys))
     rows = (await session.scalars(query)).all()
-    results = {r.actor: r.username for r in rows}
+    results = {r.uuid: r.username for r in rows}
     return [results.get(id) for id in keys]
 
 
@@ -123,12 +123,12 @@ async def actor_resolver(
 
     session: AsyncSession = info.context.session
 
-    query = select(ActorTable.actor)
+    query = select(ActorTable.uuid)
     if filter.uuids is not None:
-        query = query.where(ActorTable.actor.in_(filter.uuids))
-    query = query.order_by(ActorTable.actor)
+        query = query.where(ActorTable.uuid.in_(filter.uuids))
+    query = query.order_by(ActorTable.uuid)
 
-    uuids, next_cursor = await paginate(session, query, ActorTable.actor, limit, cursor)
+    uuids, next_cursor = await paginate(session, query, ActorTable.uuid, limit, cursor)
 
     access_log(
         session,

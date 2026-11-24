@@ -71,7 +71,7 @@ class RolebindingRuleRevision(Base):
         DateTime(timezone=True), server_default=text("now()")
     )
     actor: Mapped[UUID] = mapped_column(
-        ForeignKey("actor.actor", name="rolebinding_rule_revision_actor_fkey")
+        ForeignKey("actor.uuid", name="rolebinding_rule_revision_actor_fkey")
     )
     deleted: Mapped[bool] = mapped_column(server_default=text("false"))
 
