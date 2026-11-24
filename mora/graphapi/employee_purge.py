@@ -190,3 +190,56 @@ async def fetch_org_function_data(
         getattr(org_function_data[uuid], rel_type).add(rel_maal_uuid)
 
     return org_function_data
+
+
+def find_own_org_functions(
+    person: UUID, org_function_data: dict[UUID, OrgFunctionData]
+) -> set[UUID]:
+    """
+    Find the org functions which belong to the person, and only ever did.
+
+    An org function is the person's own when:
+
+    - Engagement, IT user, address, association, leave and any other kind:
+      the person is the only employee it has ever had
+      (tilknyttedebrugere == {person}).
+    - Manager role: not decided here, as manager roles are made vacant.
+    - Role binding: it is tied to at least one IT user, and every IT user it
+      has been tied to (tilknyttedefunktioner) is the person's own.
+    - Owner: the person is the only owned person it has ever had
+      (tilknyttedebrugere == {person}), or the only owner
+      (tilknyttedepersoner == {person}).
+
+    Comparing with {person}, rather than checking for the person, is what
+    makes it "only ever": an IT user moved from the person to somebody else
+    has both in tilknyttedebrugere, and is not the person's own.
+
+    Args:
+        person: UUID of the person.
+        org_function_data: The data of the org functions to decide on, keyed
+            by their UUIDs.
+
+    Returns:
+        UUIDs of the person's own org functions among those given.
+    """
+    only_person = {person}
+    own: set[UUID] = set()
+    for uuid, org_function in org_function_data.items():
+        if org_function.funktionsnavn in ("Leder", "Rollebinding"):
+            continue
+        if org_function.tilknyttedebrugere == only_person or (
+            org_function.funktionsnavn == "owner"
+            and org_function.tilknyttedepersoner == only_person
+        ):
+            own.add(uuid)
+
+    # Role bindings go last, as they depend on the IT users found above
+    own_role_bindings = {
+        uuid
+        for uuid, org_function in org_function_data.items()
+        if org_function.funktionsnavn == "Rollebinding"
+        and org_function.tilknyttedefunktioner
+        and org_function.tilknyttedefunktioner <= own
+    }
+
+    return own | own_role_bindings
