@@ -24,7 +24,7 @@ class Actor(Base):
     __tablename__ = "actor"
 
     actor: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
-    name: Mapped[str] = mapped_column(Text, nullable=False)
+    username: Mapped[str] = mapped_column(Text, nullable=False)
 
 
 class AccessLogOperation(Base):

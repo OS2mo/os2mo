@@ -41,7 +41,7 @@ async def actor_name_resolver(
     """
     query = select(ActorTable).where(ActorTable.actor.in_(keys))
     rows = (await session.scalars(query)).all()
-    results = {r.actor: r.name for r in rows}
+    results = {r.actor: r.username for r in rows}
     return [results.get(id) for id in keys]
 
 
@@ -57,10 +57,17 @@ def get_actor_loaders(session: AsyncSession) -> dict[str, DataLoader]:
 class Actor:
     uuid: UUID = strawberry.field(description="UUID of the actor")
 
-    @strawberry.field(description="Appropriate display text for the actor")
-    async def display_name(self, root: "Actor", info: MOInfo) -> str | None:
+    @strawberry.field(description="Username of the actor")
+    async def username(self, root: "Actor", info: MOInfo) -> str | None:
         loader: DataLoader = info.context.dataloaders.actor_name_loader
         return await loader.load(root.uuid)
+
+    @strawberry.field(
+        description="Appropriate display text for the actor",
+        deprecation_reason="Use 'username' instead. Will be removed in a future version of OS2mo.",
+    )
+    async def display_name(self, root: "Actor", info: MOInfo) -> str | None:
+        return await self.username(root, info)
 
     event_namespaces: list[Namespace] = strawberry.field(
         resolver=to_objects(

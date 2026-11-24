@@ -91,12 +91,12 @@ async def set_authenticated_user(
         if _should_save_actor(uuid, name, request, session):
             await session.execute(
                 insert(Actor)
-                .values(actor=uuid, name=name)
+                .values(actor=uuid, username=name)
                 .on_conflict_do_update(
                     index_elements=["actor"],
-                    set_={"name": name},
+                    set_={"username": name},
                     # Only update if actually different
-                    where=(Actor.name != name),
+                    where=(Actor.username != name),
                 )
             )
     if uuid is None:

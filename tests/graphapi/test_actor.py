@@ -27,7 +27,7 @@ async def test_read_actors(
           actors {
             objects {
               uuid
-              display_name
+              username
             }
           }
         }
@@ -35,10 +35,8 @@ async def test_read_actors(
     response = graphapi_post(query)
     assert response.errors is None
     assert response.data
-    display_names = {
-        actor["display_name"] for actor in response.data["actors"]["objects"]
-    }
-    assert "bruce" in display_names
+    usernames = {actor["username"] for actor in response.data["actors"]["objects"]}
+    assert "bruce" in usernames
 
 
 @pytest.mark.integration_test
@@ -55,7 +53,7 @@ async def test_read_actors_uuid_filter(
           actors(filter: $filter) {
             objects {
               uuid
-              display_name
+              username
             }
           }
         }
@@ -66,7 +64,7 @@ async def test_read_actors_uuid_filter(
     bruce = one(
         actor
         for actor in response.data["actors"]["objects"]
-        if actor["display_name"] == "bruce"
+        if actor["username"] == "bruce"
     )
 
     response = graphapi_post(query, {"filter": {"uuids": [bruce["uuid"]]}})
@@ -74,4 +72,4 @@ async def test_read_actors_uuid_filter(
     assert response.data
     filtered = one(response.data["actors"]["objects"])
     assert filtered["uuid"] == bruce["uuid"]
-    assert filtered["display_name"] == "bruce"
+    assert filtered["username"] == "bruce"
