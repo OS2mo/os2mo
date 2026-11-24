@@ -73,6 +73,7 @@ from .collections.utils import to_paged_uuids
 from .employee import create_employee
 from .employee import terminate_employee
 from .employee import update_employee
+from .employee_purge import purge_employee
 from .engagements import create_engagement
 from .engagements import terminate_engagement
 from .engagements import update_engagement
@@ -533,6 +534,27 @@ class Mutation:
     )
     async def employee_delete(self, uuid: UUID) -> Response[Employee]:
         return uuid2response(await delete_bruger(uuid), EmployeeRead)
+
+    @strawberry.mutation(
+        description=dedent(
+            """\
+            Purges an employee and every org function belonging to them.
+
+            **Warning**:
+            The employee and their org functions are deleted directly in the database, in **every** registration, bypassing the bitemporal history.
+            They disappear as if they had never existed, and **cannot** be restored.
+            Manager roles they have held are kept, but they vacated.
+
+            The purge is refused, and nothing is deleted, if a related org function is active now or in the future, or does not belong to the employee alone.
+            The refused org functions are then listed in the error's `refused` field, each with its `uuid`, `type` and `reason`.
+
+            Returns the UUID of the purged employee.
+            """
+        ),
+    )
+    async def employee_purge(self, info: MOInfo, uuid: UUID) -> UUID:
+        await purge_employee(info.context.session, uuid)
+        return uuid
 
     @strawberry.mutation(
         description="Refresh employees.",
