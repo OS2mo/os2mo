@@ -3,7 +3,6 @@
 from collections.abc import Awaitable
 from collections.abc import Callable
 from typing import TypeVar
-from uuid import UUID
 
 import jwt.exceptions
 from fastapi import Depends
@@ -21,10 +20,6 @@ from mora.auth.keycloak.models import Token
 from mora.mapping import ADMIN
 
 logger = get_logger()
-
-
-NO_AUTH_UUID = UUID("00000000-0000-0000-0000-000000000000")
-LEGACY_AUTH_UUID = UUID("00000000-0000-0000-0000-000000000001")
 
 
 TokenModel = TypeVar("TokenModel", bound=Token)

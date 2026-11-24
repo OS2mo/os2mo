@@ -12,8 +12,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from strawberry.dataloader import DataLoader
 
 from mora.access_log import access_log
-from mora.auth.keycloak.oidc import LEGACY_AUTH_UUID
-from mora.auth.keycloak.oidc import NO_AUTH_UUID
 from mora.auth.middleware import LORA_USER_UUID
 from mora.auth.middleware import MISSING_UUID_ON_TOKEN_UUID
 from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
@@ -33,6 +31,8 @@ from .paged import paginate
 from .paged import to_objects
 from .seed_resolver import seed_resolver
 
+NO_AUTH_UUID = UUID("00000000-0000-0000-0000-000000000000")
+LEGACY_AUTH_UUID = UUID("00000000-0000-0000-0000-000000000001")
 BEFORE_ACTOR_UUID = UUID("42c432e8-9c4a-11e6-9f62-873cf34a735f")
 ACTOR_NAME_LOADER_KEY = "actor_name_loader"
 
