@@ -92,9 +92,6 @@ class Settings(BaseSettings):
     # airgapped options
     enable_dar: bool = True
 
-    # Legacy auth
-    os2mo_legacy_sessions: list[UUID] = []
-
     # Bulked LoRa DataLoader fetching
     bulked_fetch: bool = True
 

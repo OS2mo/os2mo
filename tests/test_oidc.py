@@ -200,7 +200,6 @@ auth = get_auth_dependency(
     port=8080,
     realm="mo",
     token_url_path="service/token",
-    token_model=Token,
 )
 
 
@@ -378,7 +377,6 @@ async def test_token_accepted_when_aud_in_token_and_audience_is_set(
         port=8080,
         realm="mo",
         token_url_path="service/token",
-        token_model=Token,
         audience="mo",
     )
 
@@ -404,7 +402,6 @@ async def test_token_accepted_when_aud_in_token_and_verify_aud_is_false(
         port=8080,
         realm="mo",
         token_url_path="service/token",
-        token_model=Token,
         verify_audience=False,
     )
 

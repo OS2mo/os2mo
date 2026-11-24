@@ -2,8 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Awaitable
 from collections.abc import Callable
-from typing import TypeVar
-from uuid import UUID
 
 import jwt.exceptions
 from fastapi import Depends
@@ -15,32 +13,12 @@ from starlette_context import context
 from structlog import get_logger
 
 from mora import config
-from mora import depends
 from mora.auth.exceptions import AuthenticationError
 from mora.auth.exceptions import AuthorizationError
-from mora.auth.keycloak.legacy import validate_session
-from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
-from mora.graphapi.permissions import ALL_PERMISSIONS
 from mora.mapping import ADMIN
 
 logger = get_logger()
-
-
-NO_AUTH_UUID = UUID("00000000-0000-0000-0000-000000000000")
-LEGACY_AUTH_UUID = UUID("00000000-0000-0000-0000-000000000001")
-
-
-async def legacyauth() -> Token:  # pragma: no cover
-    """Legacy auth provider."""
-    return Token(
-        azp="mo-frontend",
-        uuid=str(LEGACY_AUTH_UUID),
-        realm_access=RealmAccess(roles={"service_api"}.union(ALL_PERMISSIONS)),
-    )
-
-
-TokenModel = TypeVar("TokenModel", bound=Token)
 
 
 def get_auth_dependency(
@@ -48,12 +26,11 @@ def get_auth_dependency(
     port: int,
     realm: str,
     token_url_path: str,
-    token_model: type[TokenModel],
     http_schema: str = "http",
     alg: str = "RS256",
     verify_audience: bool = True,
     audience: str | list[str] | None = None,
-):
+) -> Callable[[str], Awaitable[Token]]:
     # URI for obtaining JSON Web Key Set (JWKS), i.e. the public Keycloak key
     JWKS_URI = (
         f"{http_schema}://{host}:{port}"
@@ -66,7 +43,7 @@ def get_auth_dependency(
     # For getting and parsing the Authorization header
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl=token_url_path)
 
-    async def keycloak_auth(token: str = Depends(oauth2_scheme)) -> TokenModel:
+    async def keycloak_auth(token: str = Depends(oauth2_scheme)) -> Token:
         """
         Ensure the caller has a valid OIDC token, i.e. that the Authorization
         header is set with a valid bearer token.
@@ -131,7 +108,7 @@ def get_auth_dependency(
                 leeway=5,
             )
 
-            return token_model.parse_obj(decoded_token)
+            return Token.parse_obj(decoded_token)
 
         except Exception as err:
             raise AuthenticationError(err)
@@ -156,36 +133,10 @@ def create_keycloak_auth(
         port=settings.keycloak_port,
         realm=settings.keycloak_realm,
         token_url_path=token_url_path,
-        token_model=Token,
         http_schema=settings.keycloak_schema,
         alg=settings.keycloak_signing_alg,
         verify_audience=settings.keycloak_verify_audience,
     )
-
-
-async def fetch_keycloak_token(request: Request) -> Token:
-    oauth2_scheme = await OAuth2PasswordBearer(tokenUrl=token_url_path)(request)
-    return await request.app.state.keycloak_auth(oauth2_scheme)
-
-
-async def legacy_auth_adapter(
-    request: Request, settings: config.Settings
-) -> Token:  # pragma: no cover
-    """
-    Legacy support for the old session database to allow for grace-period before
-    switching to Keycloak auth
-
-    We check for a session header and allow people to access the application if
-    they have a session that exists in the old session database
-
-    If no header exists, or session token is invalid, we fall back to Keycloak auth
-    """
-    session_id = request.headers.get("session")
-    if session_id:
-        logger.warning("Legacy session token used", session_id=session_id)
-        if validate_session(session_id, settings.os2mo_legacy_sessions):
-            return await legacyauth()
-    return await fetch_keycloak_token(request)
 
 
 def authorization_exception_handler(
@@ -196,22 +147,21 @@ def authorization_exception_handler(
     )
 
 
-async def fetch_token(request: Request, settings: depends.Settings) -> Token:
+async def fetch_token(request: Request) -> Token:
     """Extract and validate a token from the request.
 
     Args:
         request: The FastAPI request object to extract the token from.
-        settings: The application settings.
 
     Returns:
         The validated token.
 
     Raises:
-        HTTPException: If no token is present or it fails validation.
+        HTTPException: If no token is present.
+        AuthenticationError: If the token fails validation.
     """
-    if settings.os2mo_legacy_sessions:  # pragma: no cover
-        return await legacy_auth_adapter(request, settings)
-    return await fetch_keycloak_token(request)
+    token = await OAuth2PasswordBearer(tokenUrl=token_url_path)(request)
+    return await request.app.state.keycloak_auth(token)
 
 
 async def rbac_admin(token: Token = Depends(fetch_token)):
@@ -236,25 +186,19 @@ async def rbac_admin(token: Token = Depends(fetch_token)):
     raise AuthorizationError("Not authorized to perform this operation")
 
 
-def token_getter(
-    request: Request, settings: depends.Settings
-) -> Callable[[], Awaitable[Token]]:
+def token_getter(request: Request) -> Callable[[], Awaitable[Token]]:
     """Get a callable that returns the request's token, caching on first use.
 
     Args:
         request: The FastAPI request object to extract the token from.
-        settings: The application settings.
 
     Returns:
-        A callable that returns the extracted or dummy token object.
-
-    Raises:
-        HTTPException: If no token is present or it fails validation.
+        A callable that returns the validated token.
     """
 
     async def get_token():
         if "token" not in context:
-            context["token"] = await fetch_token(request, settings)
+            context["token"] = await fetch_token(request)
         return context["token"]
 
     return get_token
