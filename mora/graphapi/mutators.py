@@ -543,7 +543,7 @@ class Mutation:
             **Warning**:
             The employee and their org functions are deleted directly in the database, in **every** registration, bypassing the bitemporal history.
             They disappear as if they had never existed, and **cannot** be restored.
-            Manager roles they have held are kept, but they vacated.
+            Manager roles they have held, and associations they have been the substitute in, are kept, but vacated.
 
             The purge is refused, and nothing is deleted, if a related org function is active now or in the future, or does not belong to the employee alone.
             The refused org functions are then listed in the error's `refused` field, each with its `uuid`, `type` and `reason`.

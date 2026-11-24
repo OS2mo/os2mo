@@ -74,7 +74,8 @@ class PurgeDecision(StrEnum):
 
     # Delete the org function, in all its registrations
     DELETE = auto()
-    # Keep the manager role, but remove the person from it
+    # Keep the manager role or substitute association, but remove the person
+    # from it
     VACATE = auto()
     # Refuse the purge, as the org function is active now or in the future
     REFUSE_ACTIVE = auto()
@@ -247,6 +248,9 @@ def find_own_org_functions(
       the person is the only employee it has ever had
       (tilknyttedebrugere == {person}).
     - Manager role: not decided here, as manager roles are made vacant.
+    - Association with the person as substitute: not decided here either, as
+      such associations are made vacant too (see
+      find_substitute_associations).
     - Role binding: it is tied to at least one IT user, and every IT user it
       has been tied to (tilknyttedefunktioner) is the person's own.
     - Owner: the person is the only owned person it has ever had
@@ -288,19 +292,50 @@ def find_own_org_functions(
     return own | own_role_bindings
 
 
-async def find_active_manager_roles_held_by_person(
+def find_substitute_associations(
+    person: UUID, org_function_data: dict[UUID, OrgFunctionData]
+) -> set[UUID]:
+    """
+    Find the associations which have the person only as their substitute.
+
+    The substitute of an association is in its tilknyttedefunktioner. An
+    association which has ever had the person as its employee is not
+    included, as it is either the person's own or moved to somebody else.
+
+    Args:
+        person: UUID of the person.
+        org_function_data: The data of the org functions to look in, keyed
+            by their UUIDs.
+
+    Returns:
+        UUIDs of the associations with the person as substitute.
+    """
+    return {
+        uuid
+        for uuid, org_function in org_function_data.items()
+        if org_function.funktionsnavn == "Tilknytning"
+        and person in org_function.tilknyttedefunktioner
+        and person not in org_function.tilknyttedebrugere
+    }
+
+
+async def find_active_org_functions_held_by_person(
     session: AsyncSession, person: UUID, uuids: set[UUID]
 ) -> set[UUID]:
     """
-    Find the manager roles which the person holds now or in the future.
+    Find the org functions which the person holds now or in the future.
+
+    The person holds a manager role as its manager (tilknyttedebrugere), and
+    an association as its substitute (tilknyttedefunktioner).
 
     Args:
         session: The database session to query in.
         person: UUID of the person.
-        uuids: UUIDs of the manager roles to check.
+        uuids: UUIDs of the manager roles and substitute associations to
+            check.
 
     Returns:
-        UUIDs of the manager roles held by the person among those given.
+        UUIDs of the org functions held by the person among those given.
     """
     result = await session.scalars(
         select(OrganisationFunktionRegistrering.organisationfunktion_id)
@@ -310,10 +345,14 @@ async def find_active_manager_roles_held_by_person(
             OrganisationFunktionRegistrering.organisationfunktion_id.in_(uuids),
             OrganisationFunktionRegistrering.registrering_period.contains(func.now()),
             OrganisationFunktionRegistrering.lifecycle != "Slettet",
-            OrganisationFunktionRelation.rel_type
-            == OrganisationFunktionRelationKode.tilknyttedebrugere,
+            OrganisationFunktionRelation.rel_type.in_(
+                [
+                    OrganisationFunktionRelationKode.tilknyttedebrugere,
+                    OrganisationFunktionRelationKode.tilknyttedefunktioner,
+                ]
+            ),
             OrganisationFunktionRelation.rel_maal_uuid == person,
-            # Held, and the manager role active, at some point from now on
+            # Held, and the org function active, at some point from now on
             OrganisationFunktionRelation.aktiv_virkning.overlaps(
                 func.tstzrange(func.now(), None)
             ),
@@ -326,7 +365,8 @@ def decide_purge(
     org_function_data: dict[UUID, OrgFunctionData],
     own: set[UUID],
     active: set[UUID],
-    active_manager_roles_held_by_person: set[UUID],
+    vacatable: set[UUID],
+    active_held_by_person: set[UUID],
 ) -> dict[UUID, PurgeDecision]:
     """
     Decide what the purge does with each org function.
@@ -336,26 +376,27 @@ def decide_purge(
             by their UUIDs.
         own: UUIDs of the person's own org functions.
         active: UUIDs of the org functions active now or in the future.
-        active_manager_roles_held_by_person: UUIDs of the manager roles the
+        vacatable: UUIDs of the org functions made vacant rather than
+            deleted: manager roles, and associations with the person as
+            substitute.
+        active_held_by_person: UUIDs of the vacatable org functions the
             person holds now or in the future.
 
     Returns:
         The decision on each org function, keyed by their UUIDs.
     """
     decisions: dict[UUID, PurgeDecision] = dict()
-    for uuid, org_function in org_function_data.items():
-        is_manager_role = org_function.funktionsnavn == "Leder"
-
+    for uuid in org_function_data:
         # The checks are made in order, and the first one to match decides.
 
-        # 1. A manager role the person holds now or in the future
-        if is_manager_role and uuid in active_manager_roles_held_by_person:
+        # 1. A vacatable org function the person holds now or in the future
+        if uuid in vacatable and uuid in active_held_by_person:
             decision = PurgeDecision.REFUSE_ACTIVE
 
-        # 2. Any other manager role. Manager roles are checked before
+        # 2. Any other vacatable org function. These are checked before
         #    ownership (since find_own_org_functions leaves them out), as they
         #    would otherwise all be refused as foreign in 3.
-        elif is_manager_role:
+        elif uuid in vacatable:
             decision = PurgeDecision.VACATE
 
         # 3. Not the person's own. Checked before activity, as such an org
@@ -419,22 +460,24 @@ async def delete_org_functions(session: AsyncSession, uuids: set[UUID]) -> None:
     )
 
 
-async def vacate_manager_roles(
+async def vacate_org_functions(
     session: AsyncSession, uuids: set[UUID], removed: set[UUID]
 ) -> None:
     """
-    Remove the purged person and their engagements from manager roles.
+    Remove the purged person and their engagements from org functions.
 
     A manager role points at the person holding it, and at the engagement
-    they hold it through. Both are removed, in every registration, so the
-    manager role does not point at anything deleted.
+    they hold it through. An association points at its substitute. These
+    are removed, in every registration, so the org function does not point
+    at anything deleted.
 
     The transaction is not committed, so the vacating can be part of a larger
     one.
 
     Args:
         session: The database session to delete in.
-        uuids: UUIDs of the manager roles to vacate.
+        uuids: UUIDs of the manager roles and substitute associations to
+            vacate.
         removed: UUIDs of what is purged: the person and the deleted org
             functions. A manager role may point at both, as it is held by the
             person through one of their engagements.
@@ -521,10 +564,10 @@ async def purge_employee(session: AsyncSession, person: UUID) -> None:
     Purge a person and every org function belonging to them.
 
     The person and their org functions are deleted in all registrations, and
-    removed from the manager roles they have held. An event is sent for each
-    of them. Nothing is deleted if any
-    related org function is refused, i.e. is active now or in the future, or
-    does not belong to the person alone.
+    removed from the manager roles they have held and the associations they
+    have been the substitute in. An event is sent for each of them. Nothing
+    is deleted if any related org function is refused, i.e. is active now or
+    in the future, or does not belong to the person alone.
 
     The transaction is not committed, so the purge can be part of a larger
     one.
@@ -548,14 +591,14 @@ async def purge_employee(session: AsyncSession, person: UUID) -> None:
         for uuid, org_function in org_function_data.items()
         if org_function.funktionsnavn == "Leder"
     }
+    vacatable = manager_roles | find_substitute_associations(person, org_function_data)
     decisions = decide_purge(
         org_function_data,
         own=find_own_org_functions(person, org_function_data),
         active=await find_active_org_functions(session, related),
-        active_manager_roles_held_by_person=(
-            await find_active_manager_roles_held_by_person(
-                session, person, manager_roles
-            )
+        vacatable=vacatable,
+        active_held_by_person=await find_active_org_functions_held_by_person(
+            session, person, vacatable
         ),
     )
 
@@ -578,7 +621,7 @@ async def purge_employee(session: AsyncSession, person: UUID) -> None:
         uuid for uuid, decision in decisions.items() if decision == PurgeDecision.VACATE
     }
     await delete_org_functions(session, deleted)
-    await vacate_manager_roles(session, vacated, removed={person} | deleted)
+    await vacate_org_functions(session, vacated, removed={person} | deleted)
     await delete_person(session, person)
     await send_purge_events(
         session,
