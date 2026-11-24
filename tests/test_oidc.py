@@ -443,25 +443,34 @@ def test_azp_mandatory():
 
 
 def test_should_ignore_extra_fields():
-    token = Token(azp="some-client", extra=0)
+    token = Token(azp="some-client", preferred_username="some-user", extra=0)
     with pytest.raises(AttributeError):
         token.extra
 
 
 def test_should_set_realm_access_to_default_value():
-    token = Token(azp="some-client")
+    token = Token(azp="some-client", preferred_username="some-user")
     assert token.realm_access.roles == set()
 
 
 def test_should_set_roles_correctly():
     roles = {"admin", "owner"}
-    token = Token(azp="some-client", realm_access=RealmAccess(roles=roles))
+    token = Token(
+        azp="some-client",
+        preferred_username="some-user",
+        realm_access=RealmAccess(roles=roles),
+    )
     assert token.realm_access.roles == roles
 
 
 def test_invalid_email_address_not_allowed():
     with pytest.raises(ValidationError) as exc_info:
-        Token(azp="mo", uuid=uuid4(), email="Invalid email")
+        Token(
+            azp="mo",
+            preferred_username="bruce",
+            uuid=uuid4(),
+            email="Invalid email",
+        )
     errors = exc_info.value.errors()[0]
 
     assert errors["loc"] == ("email",)

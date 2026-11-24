@@ -23,9 +23,7 @@ from sqlalchemy import select
 from sqlalchemy import update
 
 from mora.access_log import access_log
-from mora.auth.keycloak.models import Token
 from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
-from mora.auth.middleware import set_authenticated_user
 from mora.config import Settings
 from mora.db import AccessLogOperation
 from mora.db import AccessLogRead
@@ -245,27 +243,22 @@ async def test_access_log_filters(
     assert response.errors is None
     assert response.data == {"access_log": {"objects": []}}
 
-    # Add access log entries. Enable access logging only for these direct writes;
-    # the app's own settings are unaffected, so the verifying reads below are not
-    # logged.
-    access_log_settings = Settings(access_log_enable=True)
-
+    # Add access log entries. They are written directly, so the verifying reads
+    # below are not logged.
     async with another_transaction() as (_, session):
         for access_event in access_log_entries:
-
-            async def get_token() -> Token:
-                return Token(azp="mo", uuid=access_event["actor"])
-
-            async for _ in set_authenticated_user(..., session, get_token):
-                # TODO: Set time somehow
-                access_log(
-                    session,
-                    access_log_settings,
-                    access_event["operation"],
-                    access_event["class_name"],
-                    {},
-                    access_event["uuids"],
-                )
+            # TODO: Set time somehow
+            operation = AccessLogOperation(
+                actor=access_event["actor"],
+                model=access_event["class_name"],
+                operation=access_event["operation"],
+                arguments={},
+            )
+            session.add(operation)
+            session.add_all(
+                AccessLogRead(operation=operation, uuid=uuid)
+                for uuid in access_event["uuids"]
+            )
 
     # Test that we can see all our access log entries
     response = graphapi_post(access_filter_query, {"filter": {}})

@@ -247,12 +247,18 @@ async def test_auth_graphql(
 
 
 def test_uuid_parsed_correctly_uuid():
-    token = Token(azp="mo-frontend", uuid="30c89ad2-e0bb-42ae-82a8-1ae36943cb9e")
+    token = Token(
+        azp="mo-frontend",
+        preferred_username="bruce",
+        uuid="30c89ad2-e0bb-42ae-82a8-1ae36943cb9e",
+    )
     assert token.uuid == UUID("30c89ad2-e0bb-42ae-82a8-1ae36943cb9e")
 
 
 def test_uuid_parsed_correctly_base64():
-    token = Token(azp="mo-frontend", uuid="0prIMLvgrkKCqBrjaUPLng==")
+    token = Token(
+        azp="mo-frontend", preferred_username="bruce", uuid="0prIMLvgrkKCqBrjaUPLng=="
+    )
 
     assert token.uuid == UUID("30c89ad2-e0bb-42ae-82a8-1ae36943cb9e")
 
@@ -261,6 +267,7 @@ def test_uuid_parse_fails_on_garbage():
     with pytest.raises(ValidationError) as err:
         Token(
             azp="mo-frontend",
+            preferred_username="bruce",
             realm_access=RealmAccess(roles={"owner"}),
             uuid="garbageasdasd",
         )

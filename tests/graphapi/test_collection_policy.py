@@ -539,7 +539,12 @@ async def test_a_condition_becomes_the_clause_its_filter_names(
 
 async def test_a_condition_yielding_what_the_filter_rejects_fails() -> None:
     """The map a condition yields is coerced into the collection's filter."""
-    token = Token(azp="mo", uuid=BRUCE_UUID, realm_access=RealmAccess(roles={"reader"}))
+    token = Token(
+        azp="mo",
+        uuid=BRUCE_UUID,
+        preferred_username="bruce",
+        realm_access=RealmAccess(roles={"reader"}),
+    )
 
     with pytest.raises(GraphQLError) as raised:
         cel2predicate(

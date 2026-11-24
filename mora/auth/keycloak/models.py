@@ -19,7 +19,7 @@ class RealmAccess(BaseModel):
 class Token(BaseModel):
     azp: str
     email: EmailStr | None
-    preferred_username: str | None
+    preferred_username: str
     realm_access: RealmAccess = RealmAccess(roles=set())
     uuid: UUID | None
 

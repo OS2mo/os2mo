@@ -40,7 +40,12 @@ async def test_a_condition_yields_the_filter_it_names(
     condition: str, expected: dict
 ) -> None:
     """A condition is evaluated on the caller's token, down to plain values."""
-    token = Token(azp="mo", uuid=BRUCE_UUID, realm_access=RealmAccess(roles={"reader"}))
+    token = Token(
+        azp="mo",
+        uuid=BRUCE_UUID,
+        preferred_username="bruce",
+        realm_access=RealmAccess(roles={"reader"}),
+    )
 
     assert evaluate(condition, token, {}) == expected
 
@@ -62,7 +67,12 @@ async def test_a_condition_yields_what_the_arguments_name(
     condition: str, expected: Any
 ) -> None:
     """A condition is evaluated on the arguments, down to plain values."""
-    token = Token(azp="mo", uuid=BRUCE_UUID, realm_access=RealmAccess(roles={"owner"}))
+    token = Token(
+        azp="mo",
+        uuid=BRUCE_UUID,
+        preferred_username="bruce",
+        realm_access=RealmAccess(roles={"owner"}),
+    )
     args = {
         "input": {
             "org_unit": ALVIDA_UUID,
@@ -76,7 +86,12 @@ async def test_a_condition_yields_what_the_arguments_name(
 
 async def test_a_condition_names_a_value_once_with_bind() -> None:
     """A condition binds a value to a name with `cel.bind`."""
-    token = Token(azp="mo", uuid=BRUCE_UUID, realm_access=RealmAccess(roles={"owner"}))
+    token = Token(
+        azp="mo",
+        uuid=BRUCE_UUID,
+        preferred_username="bruce",
+        realm_access=RealmAccess(roles={"owner"}),
+    )
 
     assert evaluate("cel.bind(me, token.uuid, [me, me])", token, {}) == [
         str(BRUCE_UUID),
@@ -86,7 +101,12 @@ async def test_a_condition_names_a_value_once_with_bind() -> None:
 
 async def test_a_condition_reaching_for_what_the_token_lacks_fails() -> None:
     """A condition naming something the context has not is an error, not a denial."""
-    token = Token(azp="mo", uuid=BRUCE_UUID, realm_access=RealmAccess(roles={"reader"}))
+    token = Token(
+        azp="mo",
+        uuid=BRUCE_UUID,
+        preferred_username="bruce",
+        realm_access=RealmAccess(roles={"reader"}),
+    )
 
     with pytest.raises(CelError) as raised:
         evaluate("token.nonsense.deeper", token, {})

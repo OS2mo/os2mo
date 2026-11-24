@@ -42,7 +42,12 @@ NOT_FOUND_UUID = UUID("c6720bc8-6e37-4a59-8876-950b2117df22")
 
 @pytest.fixture
 def owner_token() -> Token:
-    return Token(azp="mo", uuid=BRUCE_UUID, realm_access=RealmAccess(roles={"owner"}))
+    return Token(
+        azp="mo",
+        uuid=BRUCE_UUID,
+        preferred_username="bruce",
+        realm_access=RealmAccess(roles={"owner"}),
+    )
 
 
 @pytest.mark.integration_test
