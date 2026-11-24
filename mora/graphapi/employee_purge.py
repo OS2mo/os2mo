@@ -243,3 +243,37 @@ def find_own_org_functions(
     }
 
     return own | own_role_bindings
+
+
+async def find_active_manager_roles_held_by_person(
+    session: AsyncSession, person: UUID, uuids: set[UUID]
+) -> set[UUID]:
+    """
+    Find the manager roles which the person holds now or in the future.
+
+    Args:
+        session: The database session to query in.
+        person: UUID of the person.
+        uuids: UUIDs of the manager roles to check.
+
+    Returns:
+        UUIDs of the manager roles held by the person among those given.
+    """
+    result = await session.scalars(
+        select(OrganisationFunktionRegistrering.organisationfunktion_id)
+        .distinct()
+        .join(OrganisationFunktionRelation)
+        .where(
+            OrganisationFunktionRegistrering.organisationfunktion_id.in_(uuids),
+            OrganisationFunktionRegistrering.registrering_period.contains(func.now()),
+            OrganisationFunktionRegistrering.lifecycle != "Slettet",
+            OrganisationFunktionRelation.rel_type
+            == OrganisationFunktionRelationKode.tilknyttedebrugere,
+            OrganisationFunktionRelation.rel_maal_uuid == person,
+            # Held, and the manager role active, at some point from now on
+            OrganisationFunktionRelation.aktiv_virkning.overlaps(
+                func.tstzrange(func.now(), None)
+            ),
+        )
+    )
+    return set(result)
