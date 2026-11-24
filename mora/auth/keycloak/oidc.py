@@ -145,11 +145,6 @@ def create_keycloak_auth(
     )
 
 
-async def fetch_keycloak_token(request: Request) -> Token:
-    oauth2_scheme = await OAuth2PasswordBearer(tokenUrl=token_url_path)(request)
-    return await request.app.state.keycloak_auth(oauth2_scheme)
-
-
 def authorization_exception_handler(
     request: Request, err: AuthorizationError
 ) -> JSONResponse:
@@ -168,9 +163,11 @@ async def fetch_token(request: Request) -> Token:
         The validated token.
 
     Raises:
-        HTTPException: If no token is present or it fails validation.
+        HTTPException: If no token is present.
+        AuthenticationError: If the token fails validation.
     """
-    return await fetch_keycloak_token(request)
+    token = await OAuth2PasswordBearer(tokenUrl=token_url_path)(request)
+    return await request.app.state.keycloak_auth(token)
 
 
 async def rbac_admin(token: Token = Depends(fetch_token)):
@@ -202,10 +199,7 @@ def token_getter(request: Request) -> Callable[[], Awaitable[Token]]:
         request: The FastAPI request object to extract the token from.
 
     Returns:
-        A callable that returns the extracted or dummy token object.
-
-    Raises:
-        HTTPException: If no token is present or it fails validation.
+        A callable that returns the validated token.
     """
 
     async def get_token():
