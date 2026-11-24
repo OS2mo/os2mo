@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Awaitable
 from collections.abc import Callable
-from typing import TypeVar
 
 import jwt.exceptions
 from fastapi import Depends
@@ -22,20 +21,16 @@ from mora.mapping import ADMIN
 logger = get_logger()
 
 
-TokenModel = TypeVar("TokenModel", bound=Token)
-
-
 def get_auth_dependency(
     host: str,
     port: int,
     realm: str,
     token_url_path: str,
-    token_model: type[TokenModel],
     http_schema: str = "http",
     alg: str = "RS256",
     verify_audience: bool = True,
     audience: str | list[str] | None = None,
-):
+) -> Callable[[str], Awaitable[Token]]:
     # URI for obtaining JSON Web Key Set (JWKS), i.e. the public Keycloak key
     JWKS_URI = (
         f"{http_schema}://{host}:{port}"
@@ -48,7 +43,7 @@ def get_auth_dependency(
     # For getting and parsing the Authorization header
     oauth2_scheme = OAuth2PasswordBearer(tokenUrl=token_url_path)
 
-    async def keycloak_auth(token: str = Depends(oauth2_scheme)) -> TokenModel:
+    async def keycloak_auth(token: str = Depends(oauth2_scheme)) -> Token:
         """
         Ensure the caller has a valid OIDC token, i.e. that the Authorization
         header is set with a valid bearer token.
@@ -113,7 +108,7 @@ def get_auth_dependency(
                 leeway=5,
             )
 
-            return token_model.parse_obj(decoded_token)
+            return Token.parse_obj(decoded_token)
 
         except Exception as err:
             raise AuthenticationError(err)
@@ -138,7 +133,6 @@ def create_keycloak_auth(
         port=settings.keycloak_port,
         realm=settings.keycloak_realm,
         token_url_path=token_url_path,
-        token_model=Token,
         http_schema=settings.keycloak_schema,
         alg=settings.keycloak_signing_alg,
         verify_audience=settings.keycloak_verify_audience,
