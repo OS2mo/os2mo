@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from enum import StrEnum
+from enum import auto
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -37,6 +39,19 @@ class OrgFunctionData(BaseModel):
     tilknyttedebrugere: set[UUID] = set()
     tilknyttedepersoner: set[UUID] = set()
     tilknyttedefunktioner: set[UUID] = set()
+
+
+class PurgeDecision(StrEnum):
+    """What the purge does with an org function."""
+
+    # Delete the org function, in all its registrations
+    DELETE = auto()
+    # Keep the manager role, but remove the person from it
+    VACATE = auto()
+    # Refuse the purge, as the org function is active now or in the future
+    REFUSE_ACTIVE = auto()
+    # Refuse the purge, as the org function is not the person's own
+    REFUSE_FOREIGN = auto()
 
 
 async def find_related_org_functions(session: AsyncSession, person: UUID) -> set[UUID]:
@@ -277,3 +292,59 @@ async def find_active_manager_roles_held_by_person(
         )
     )
     return set(result)
+
+
+def decide_purge(
+    org_function_data: dict[UUID, OrgFunctionData],
+    own: set[UUID],
+    active: set[UUID],
+    active_manager_roles_held_by_person: set[UUID],
+) -> dict[UUID, PurgeDecision]:
+    """
+    Decide what the purge does with each org function.
+
+    Args:
+        org_function_data: The data of the org functions to decide on, keyed
+            by their UUIDs.
+        own: UUIDs of the person's own org functions.
+        active: UUIDs of the org functions active now or in the future.
+        active_manager_roles_held_by_person: UUIDs of the manager roles the
+            person holds now or in the future.
+
+    Returns:
+        The decision on each org function, keyed by their UUIDs.
+    """
+    decisions: dict[UUID, PurgeDecision] = dict()
+    for uuid, org_function in org_function_data.items():
+        is_manager_role = org_function.funktionsnavn == "Leder"
+
+        # The checks are made in order, and the first one to match decides.
+
+        # 1. A manager role the person holds now or in the future
+        if is_manager_role and uuid in active_manager_roles_held_by_person:
+            decision = PurgeDecision.REFUSE_ACTIVE
+
+        # 2. Any other manager role. Manager roles are checked before
+        #    ownership (since find_own_org_functions leaves them out), as they
+        #    would otherwise all be refused as foreign in 3.
+        elif is_manager_role:
+            decision = PurgeDecision.VACATE
+
+        # 3. Not the person's own. Checked before activity, as such an org
+        #    function is refused whether active or not, and the decision should
+        #    tell the caller that it is not the person's, rather than that it
+        #    is active.
+        elif uuid not in own:
+            decision = PurgeDecision.REFUSE_FOREIGN
+
+        # 4. One of the person's own, active now or in the future
+        elif uuid in active:
+            decision = PurgeDecision.REFUSE_ACTIVE
+
+        # 5. Everything else
+        else:
+            decision = PurgeDecision.DELETE
+
+        decisions[uuid] = decision
+
+    return decisions
