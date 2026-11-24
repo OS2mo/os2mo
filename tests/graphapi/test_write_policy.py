@@ -32,6 +32,7 @@ from tests.conftest import BRUCE_UUID
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 from tests.conftest import SetWriteRules
+from tests.conftest import UploadFile
 from tests.conftest import assert_denied
 from tests.conftest import assert_granted
 from tests.conftest import token_getter_of
@@ -617,3 +618,22 @@ async def test_a_condition_deciding_by_itself_decides_the_mutator(
             {"input": {**input, "org_unit": None, "person": str(BRUCE_UUID)}},
         )
     )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_a_condition_compares_enum_arguments_by_name(
+    set_auth: SetAuth,
+    set_write_rules: SetWriteRules,
+    upload_file: UploadFile,
+) -> None:
+    """An enum argument reaches the condition by the name clients send it by."""
+    await set_write_rules(
+        role="insights_uploader",
+        mutator="upload_file",
+        condition='args.file_store == "INSIGHTS"',
+    )
+    set_auth({"insights_uploader"}, BRUCE_UUID)
+
+    assert_granted(upload_file("report.csv", b"data", file_store="INSIGHTS"))
+    assert_denied(upload_file("report.csv", b"data", file_store="EXPORTS"))
