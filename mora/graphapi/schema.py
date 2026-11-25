@@ -36,8 +36,6 @@ from mora.cel.rolebinding_rules import RolebindingRuleCEL
 from mora.db import Collection
 from mora.db import get_session
 from mora.exceptions import HTTPException
-from mora.graphapi.actor import SpecialActor
-from mora.graphapi.actor import UnknownActor
 from mora.graphapi.collections import DARAddress
 from mora.graphapi.collections import DefaultAddress
 from mora.graphapi.collections import MultifieldAddress
@@ -323,8 +321,6 @@ def get_schema(version: Version) -> CustomSchema:
             DefaultAddress,
             DARAddress,
             MultifieldAddress,
-            SpecialActor,
-            UnknownActor,
             # Concrete registration types
             AddressRegistration,
             AssociationRegistration,

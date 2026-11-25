@@ -2,15 +2,11 @@
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
 from typing import Any
-from unittest.mock import ANY
 from uuid import UUID
 
 import pytest
 
-from mora.graphapi.actor import HardcodedActor
-
 from ..conftest import GraphAPIPost
-from ..conftest import SetAuth
 from ..conftest import admin_auth
 
 
@@ -152,10 +148,7 @@ async def test_token_information(graphapi_post: GraphAPIPost) -> None:
           me {
             actor {
               uuid
-              ... on UnknownActor {
-                __typename
-                error
-              }
+              display_name
             }
             email
             roles
@@ -173,16 +166,13 @@ async def test_token_information(graphapi_post: GraphAPIPost) -> None:
         "me": {
             "actor": {
                 "uuid": str(token.uuid),
-                "__typename": "UnknownActor",
-                "error": ANY,
+                "display_name": token.preferred_username,
             },
             "roles": sorted(token.realm_access.roles),
             "username": token.preferred_username,
             "email": token.email,
         }
     }
-    error = response.data["me"]["actor"]["error"]
-    assert "The actor could not be translated." in error
 
 
 @pytest.mark.integration_test
@@ -270,50 +260,3 @@ async def test_my_listeners(
     assert deleted is True
     assert read_my_listeners() == set()
     assert read_my_namespaces() == {bpc_ns}
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("empty_db")
-@pytest.mark.parametrize(
-    "name,token_uuid", [(entity.name, entity.value) for entity in HardcodedActor]
-)
-async def test_token_information_special(
-    graphapi_post: GraphAPIPost,
-    set_auth: SetAuth,
-    name: str,
-    token_uuid: UUID,
-) -> None:
-    set_auth(None, token_uuid)
-
-    me_query = """
-        query WhoAmI {
-          me {
-            actor {
-              uuid
-              ... on SpecialActor {
-                __typename
-                key
-              }
-            }
-            email
-            roles
-            username
-          }
-        }
-    """
-    response = graphapi_post(me_query)
-    assert response.errors is None
-    assert response.data
-
-    assert response.data == {
-        "me": {
-            "actor": {
-                "uuid": str(token_uuid),
-                "__typename": "SpecialActor",
-                "key": name,
-            },
-            "roles": [],
-            "username": "bruce",
-            "email": "bruce@kung.fu",
-        }
-    }

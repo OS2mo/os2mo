@@ -6,6 +6,8 @@ PUBLIC_FIELDS: frozenset[tuple[str, str]] = frozenset(
     {
         ("AccessLogPaged", "objects"),
         ("AccessLogPaged", "page_info"),
+        ("Actor", "display_name"),
+        ("Actor", "uuid"),
         ("ActorPaged", "objects"),
         ("ActorPaged", "page_info"),
         ("AddressResponse", "current"),
@@ -181,12 +183,6 @@ PUBLIC_FIELDS: frozenset[tuple[str, str]] = frozenset(
         ("RoleBindingResponse", "validities"),
         ("RoleBindingResponsePaged", "objects"),
         ("RoleBindingResponsePaged", "page_info"),
-        ("SpecialActor", "display_name"),
-        ("SpecialActor", "key"),
-        ("SpecialActor", "uuid"),
-        ("UnknownActor", "display_name"),
-        ("UnknownActor", "error"),
-        ("UnknownActor", "uuid"),
         ("Version", "lora_version"),
         ("Version", "mo_hash"),
         ("Version", "mo_version"),
@@ -198,6 +194,8 @@ PUBLIC_FIELDS: frozenset[tuple[str, str]] = frozenset(
 # read rules on the Reader policy. Instead add a migration granting them there.
 RBAC_MAP: frozenset[tuple[str, str]] = frozenset(
     {
+        ("Actor", "event_listeners"),
+        ("Actor", "event_namespaces"),
         ("AddressRegistration", "actor"),
         ("AddressRegistration", "actor_object"),
         ("AddressRegistration", "current"),
@@ -516,10 +514,6 @@ RBAC_MAP: frozenset[tuple[str, str]] = frozenset(
         ("RoleBindingResponseRegistration", "start"),
         ("RoleBindingResponseRegistration", "uuid"),
         ("RoleBindingResponseRegistration", "validities"),
-        ("SpecialActor", "event_listeners"),
-        ("SpecialActor", "event_namespaces"),
-        ("UnknownActor", "event_listeners"),
-        ("UnknownActor", "event_namespaces"),
         ("Validity", "from"),
         ("Validity", "to"),
     }
