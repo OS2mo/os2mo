@@ -13,6 +13,7 @@ from sqlalchemy import type_coerce
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from mora import exceptions
+from mora import mapping
 from mora.amqp import _lora_to_mo
 from mora.db import Bruger
 from mora.db import BrugerAttrEgenskaber
@@ -90,7 +91,8 @@ async def find_related_org_functions(session: AsyncSession, person: UUID) -> set
     An org function is related if it points at the person, or at an org
     function already found, in any of its registrations. Org functions which
     turn out not to be the person's own, such as an org unit's address tied to
-    their engagement, are found too.
+    their engagement, are found too. Engagements pointing at a manager role as
+    their explicit manager are not, as the manager role is kept.
 
     Args:
         session: The database session to query in.
@@ -136,7 +138,11 @@ async def find_related_org_functions(session: AsyncSession, person: UUID) -> set
                     # The IT user of an association
                     OrganisationFunktionRelationKode.tilknyttedeitsystemer,
                 ]
-            )
+            ),
+            # Not an engagement's explicit manager. A manager role is never
+            # deleted, only made vacant, so an engagement pointing at one is
+            # left alone, rather than found (and refused, if somebody else's).
+            OrganisationFunktionRelation.objekt_type.is_distinct_from(mapping.MANAGER),
         )
     )
     # UNION, not UNION ALL, drops org functions already found, which also ends
