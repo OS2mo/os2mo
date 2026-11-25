@@ -2014,6 +2014,48 @@ def update_address(
 
 
 @pytest.fixture
+def update_ituser(
+    graphapi_post: GraphAPIPost,
+    root_org: UUID,
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        mutate_query = """
+            mutation UpdateITUser($input: ITUserUpdateInput!) {
+                ituser_update(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=mutate_query, variables={"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["ituser_update"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
+def update_rolebinding(
+    graphapi_post: GraphAPIPost,
+    root_org: UUID,
+) -> Callable[[dict[str, Any]], UUID]:
+    def inner(input: dict[str, Any]) -> UUID:
+        mutate_query = """
+            mutation UpdateRoleBinding($input: RoleBindingUpdateInput!) {
+                rolebinding_update(input: $input) {
+                    uuid
+                }
+            }
+        """
+        response = graphapi_post(query=mutate_query, variables={"input": input})
+        assert response.errors is None
+        assert response.data
+        return UUID(response.data["rolebinding_update"]["uuid"])
+
+    return inner
+
+
+@pytest.fixture
 async def facets(graphapi_post: GraphAPIPost) -> dict[str, UUID]:
     facets = (
         "address_property",
