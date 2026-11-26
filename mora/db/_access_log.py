@@ -23,8 +23,10 @@ from ._common import Base
 class Actor(Base):
     __tablename__ = "actor"
 
-    uuid: Mapped[UUID] = mapped_column(Uuid, primary_key=True)
-    username: Mapped[str] = mapped_column(Text, nullable=False)
+    uuid: Mapped[UUID] = mapped_column(
+        Uuid, primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    username: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
 
 
 class AccessLogOperation(Base):

@@ -647,11 +647,12 @@ async def test_accesslog_actor_object(
     for obj in response.data["access_log"]["objects"]:
         assert obj["actor_object"] == {"display_name": "bruce", "uuid": bruce_uuid}
 
-    # This should update MOs database next time it parses a token.
+    # Actors are identified by their username, so a new username is a new
+    # actor. The existing entries are still attributed to the old actor.
     set_auth(ADMIN, bruce_uuid, preferred_username="new name")
 
     response = graphapi_post(read_query, {"uuid": person_uuid})
     assert response.errors is None
     assert response.data
     for obj in response.data["access_log"]["objects"]:
-        assert obj["actor_object"] == {"display_name": "new name", "uuid": bruce_uuid}
+        assert obj["actor_object"] == {"display_name": "bruce", "uuid": bruce_uuid}

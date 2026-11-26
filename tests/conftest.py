@@ -36,13 +36,13 @@ from more_itertools import one
 from sqlalchemy import func
 from sqlalchemy import text
 from sqlalchemy import update
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncConnection
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette_context import request_cycle_context
 
 from mora import db
 from mora.app import create_app
-from mora.auth import middleware as auth_middleware
 from mora.auth.keycloak.oidc import Token
 from mora.auth.keycloak.oidc import fetch_token
 from mora.auth.keycloak.oidc import token_getter
@@ -124,11 +124,6 @@ def clear_configured_organisation():
 
 
 @pytest.fixture(autouse=True)
-def clear_actor_cache():
-    auth_middleware._actor_cache.clear()
-
-
-@pytest.fixture(autouse=True)
 def clear_settings_cache() -> YieldFixture[None]:
     """Clear the ``get_settings`` caches so each test reads its env overrides freshly."""
     get_settings.cache_clear()
@@ -206,7 +201,7 @@ def token_getter_of(*roles: str) -> Callable[[], Awaitable[Token]]:
     return get_fake_token
 
 
-SetAuth = Callable[[str | Collection[str] | None, UUID | str | None, str], None]
+SetAuth = Callable[[str | Collection[str] | None, UUID | str | None, str | None], None]
 
 
 class SetRules(Protocol):
@@ -235,8 +230,15 @@ def set_auth(
     def _set_auth(
         role: str | Collection[str] | None = None,
         user_uuid: UUID | str | None = None,
-        preferred_username: str = "bruce",
+        preferred_username: str | None = None,
     ) -> None:
+        # Actors are identified by their username, so different UUIDs need
+        # different usernames to be different actors.
+        if preferred_username is None:
+            if user_uuid is None or str(user_uuid) == str(BRUCE_UUID):
+                preferred_username = "bruce"
+            else:
+                preferred_username = f"user-{user_uuid}"
         token_data = {
             "acr": "1",
             "allowed-origins": ["http://localhost:5001"],
@@ -495,6 +497,40 @@ async def another_transaction(
     return inner
 
 
+CreateActor = Callable[[UUID], Awaitable[None]]
+
+
+@pytest.fixture
+def create_actor(another_transaction: AnotherTransaction) -> CreateActor:
+    """Register an actor with the given UUID.
+
+    Actors are identified by their username, and new actors get a random UUID.
+    This creates an actor, as if it existed before that, under the username
+    `set_auth` uses for the UUID.
+    """
+
+    async def inner(uuid: UUID) -> None:
+        async with another_transaction() as (_, session):
+            session.add(db.Actor(uuid=uuid, username=f"user-{uuid}"))
+
+    return inner
+
+
+async def _create_bruce(lora_settings: LoraSettings, database_name: str) -> None:
+    """Create Bruce, the default test actor.
+
+    He has used OS2mo since before actors were identified by their username,
+    so he keeps his UUID. This is not part of the database template, since
+    the template may be recreated through the testing API.
+    """
+    async with _use_session(lora_settings, database_name) as (_, session):
+        await session.execute(
+            pg_insert(db.Actor)
+            .values(uuid=BRUCE_UUID, username="bruce")
+            .on_conflict_do_nothing()
+        )
+
+
 @pytest.fixture(scope="session")
 async def empty_database_template() -> AsyncYieldFixture[str]:
     await setup_empty_db_template()
@@ -521,13 +557,15 @@ async def empty_db(
     empty_database_template: str,
     sessionmakermaker: SessionmakerMaker,
 ) -> AsyncYieldFixture[async_sessionmaker]:
-    async with (
-        _database_copy(superuser, empty_database_template) as database_name,
-        _use_session(lora_settings, database_name) as (sessionmaker, session),
-    ):
-        sessionmakermaker.sessionmaker = sessionmaker
-        sessionmakermaker.database_name = database_name
-        yield session
+    async with _database_copy(superuser, empty_database_template) as database_name:
+        await _create_bruce(lora_settings, database_name)
+        async with _use_session(lora_settings, database_name) as (
+            sessionmaker,
+            session,
+        ):
+            sessionmakermaker.sessionmaker = sessionmaker
+            sessionmakermaker.database_name = database_name
+            yield session
 
 
 @pytest.fixture
@@ -537,13 +575,15 @@ async def fixture_db(
     fixture_database_template: str,
     sessionmakermaker: SessionmakerMaker,
 ) -> AsyncYieldFixture[async_sessionmaker]:
-    async with (
-        _database_copy(superuser, fixture_database_template) as database_name,
-        _use_session(lora_settings, database_name) as (sessionmaker, session),
-    ):
-        sessionmakermaker.sessionmaker = sessionmaker
-        sessionmakermaker.database_name = database_name
-        yield session
+    async with _database_copy(superuser, fixture_database_template) as database_name:
+        await _create_bruce(lora_settings, database_name)
+        async with _use_session(lora_settings, database_name) as (
+            sessionmaker,
+            session,
+        ):
+            sessionmakermaker.sessionmaker = sessionmaker
+            sessionmakermaker.database_name = database_name
+            yield session
 
 
 @dataclass

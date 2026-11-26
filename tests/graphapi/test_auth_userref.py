@@ -9,7 +9,6 @@ from sqlalchemy import select
 
 from mora.auth.keycloak.oidc import fetch_token
 from mora.auth.keycloak.oidc import token_getter
-from mora.auth.middleware import MISSING_UUID_ON_TOKEN_UUID
 from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
 from mora.auth.middleware import UNABLE_TO_PARSE_TOKEN_UUID
 from mora.common import get_connector
@@ -50,34 +49,18 @@ def create_facet(graphapi_post: GraphAPIPost, root_org: UUID) -> Callable[[], UU
 
 @pytest.mark.integration_test
 @pytest.mark.parametrize(
-    "token_uuid, actor_uuid",
-    [
-        # Random token UUIDs -> those UUIDs
-        (
-            UUID("a2f13305-e49b-416a-b31c-8d80b24b269b"),
-            UUID("a2f13305-e49b-416a-b31c-8d80b24b269b"),
-        ),
-        (
-            UUID("6998caa6-aee7-4b03-889f-216c2b2cbc62"),
-            UUID("6998caa6-aee7-4b03-889f-216c2b2cbc62"),
-        ),
-        # No UUID -> Faceless
-        (
-            None,
-            MISSING_UUID_ON_TOKEN_UUID,
-        ),
-    ],
+    "token_uuid",
+    [UUID("a2f13305-e49b-416a-b31c-8d80b24b269b"), None],
 )
 async def test_create_facet(
     empty_db: AsyncSession,
     create_facet: Callable[[], UUID],
     set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
     token_uuid: UUID | None,
-    actor_uuid: UUID,
 ) -> None:
-    """Integrationtest for testing user references in LoRa."""
-    # Change our token user to the specified UUID
-    set_auth(ADMIN, token_uuid)
+    """LoRa records the UUID of the actor, regardless of the token's UUID."""
+    set_auth(ADMIN, token_uuid, "facet-creator")
 
     facet_uuid = create_facet()
 
@@ -87,7 +70,11 @@ async def test_create_facet(
         )
     )
 
-    assert brugerref == actor_uuid
+    response = graphapi_post("query { me { actor { uuid } } }")
+    assert response.errors is None
+    assert response.data
+    assert brugerref == UUID(response.data["me"]["actor"]["uuid"])
+    assert brugerref != token_uuid
 
 
 @pytest.mark.integration_test

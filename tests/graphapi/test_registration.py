@@ -294,14 +294,15 @@ async def test_registration_actor_object(
     assert registration["actor_object"]["display_name"] == "bruce"
     actor_uuid = registration["actor_object"]["uuid"]
 
-    # This should update MOs database next time it parses a token.
+    # Actors are identified by their username, so a new username is a new
+    # actor. The existing registration is still attributed to the old actor.
     set_auth(ADMIN, actor_uuid, preferred_username="brucerino")
 
     response = graphapi_post(read_query, {"uuid": person_uuid})
     assert response.errors is None
     assert response.data
     registration = one(response.data["registrations"]["objects"])
-    assert registration["actor_object"]["display_name"] == "brucerino"
+    assert registration["actor_object"]["display_name"] == "bruce"
     assert registration["actor_object"]["uuid"] == actor_uuid
 
 

@@ -9,6 +9,7 @@ import pytest
 from more_itertools import one
 
 from mora.db import Collection
+from tests.conftest import CreateActor
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 from tests.conftest import SetRules
@@ -18,10 +19,11 @@ from tests.conftest import SetRules
 @pytest.mark.envvar({"ACCESS_LOG_ENABLE": "True"})
 @pytest.mark.usefixtures("empty_db")
 async def test_a_reader_reads_the_fields_of_an_access_log_entry(
-    set_auth: SetAuth, graphapi_post: GraphAPIPost
+    set_auth: SetAuth, graphapi_post: GraphAPIPost, create_actor: CreateActor
 ) -> None:
     """A reader reads every field of an access log entry."""
     reader = uuid4()
+    await create_actor(reader)
     set_auth({"reader"}, reader)
     query = """
         query {

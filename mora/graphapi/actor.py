@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from strawberry.dataloader import DataLoader
 
 from mora.access_log import access_log
+from mora.auth.middleware import get_authenticated_user
 from mora.db import Actor as ActorTable
 from mora.graphapi.context import MOInfo
 from mora.graphapi.filters import gen_filter_string
@@ -164,7 +165,7 @@ class Myself:
 def myself_resolver(info: MOInfo) -> Myself:
     token = info.context.token
     return Myself(
-        actor=actor_uuid_to_actor(token.uuid),
+        actor=actor_uuid_to_actor(get_authenticated_user()),
         email=token.email,
         username=token.preferred_username,
         roles=sorted(token.realm_access.roles),

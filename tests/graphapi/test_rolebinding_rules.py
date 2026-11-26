@@ -23,6 +23,7 @@ from mora.mapping import ADMIN
 
 from ..conftest import BRUCE_UUID
 from ..conftest import AnotherTransaction
+from ..conftest import CreateActor
 from ..conftest import GraphAPIPost
 from ..conftest import SetAuth
 from ..test_events import ack_event
@@ -80,9 +81,10 @@ def rule(graphapi_post: GraphAPIPost, role: UUID) -> UUID:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-def test_create_update_and_delete_rule(
+async def test_create_update_and_delete_rule(
     graphapi_post: GraphAPIPost,
     set_auth: SetAuth,
+    create_actor: CreateActor,
     itsystem: UUID,
     role: UUID,
     rule: UUID,
@@ -125,6 +127,7 @@ def test_create_update_and_delete_rule(
 
     # Bob changes the expression and deactivates the rule. The name and the
     # role carry over from the previous revision.
+    await create_actor(bob)
     set_auth(ADMIN, bob)
     response = graphapi_post(
         UPDATE_RULE,

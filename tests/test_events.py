@@ -20,6 +20,7 @@ from mora.db.events import DEFAULT_PRIORITY
 from mora.mapping import ADMIN
 from tests.conftest import BRUCE_UUID
 from tests.conftest import AnotherTransaction
+from tests.conftest import CreateActor
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
@@ -1280,12 +1281,15 @@ def test_you_cannot_send_in_mo_namespace(graphapi_post: GraphAPIPost) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-def test_ns_filter(set_auth: SetAuth, graphapi_post: GraphAPIPost) -> None:
+async def test_ns_filter(
+    set_auth: SetAuth, graphapi_post: GraphAPIPost, create_actor: CreateActor
+) -> None:
     ns1 = {"name": "ns1", "owner": str(uuid4()), "public": False}
     ns2 = {"name": "ns2", "owner": str(uuid4()), "public": False}
     ns3 = {"name": "ns3", "owner": str(uuid4()), "public": True}
 
     for ns in (ns1, ns2, ns3):
+        await create_actor(UUID(ns["owner"]))
         set_auth(ADMIN, ns["owner"])
         response = declare_namespace(graphapi_post, ns["name"], public=ns["public"])
         assert response.errors is None
@@ -1630,8 +1634,8 @@ def test_refresh_priority(graphapi_post: GraphAPIPost) -> None:
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("empty_db")
-def test_declare_listener_does_not_return_other_owners_listener(
-    set_auth: SetAuth, graphapi_post: GraphAPIPost
+async def test_declare_listener_does_not_return_other_owners_listener(
+    set_auth: SetAuth, graphapi_post: GraphAPIPost, create_actor: CreateActor
 ) -> None:
     # two owners may declare listeners that share (namespace, user_key).
     # The declare mutator must look up the listener filtered by owner as well,
@@ -1644,6 +1648,8 @@ def test_declare_listener_does_not_return_other_owners_listener(
     # that ends up being returned is oredered by this UUID if more than one
     # listener is selected
     user1, user2 = sorted([uuid4(), uuid4()])
+    await create_actor(user1)
+    await create_actor(user2)
 
     set_auth(ADMIN, user1)
     declare_namespace(graphapi_post, namespace, public=True)
