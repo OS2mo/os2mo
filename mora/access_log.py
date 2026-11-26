@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Sequence
+from enum import Enum
 from typing import Any
 from uuid import UUID
 
+import strawberry
 from fastapi.encoders import jsonable_encoder
 
 from mora.auth.middleware import get_authenticated_user
@@ -11,6 +13,22 @@ from mora.config import Settings
 from mora.db import AccessLogOperation
 from mora.db import AccessLogRead
 from mora.db import AsyncSession
+
+
+@strawberry.enum
+class AccessLogModel(Enum):
+    ACCESS_LOG = "AccessLog"
+    ACTOR = "Actor"
+    PERSON = "Bruger"
+    FACET = "Facet"
+    IT_SYSTEM = "ItSystem"
+    CLASS = "Klasse"
+    ORGANISATION = strawberry.enum_value(
+        "Organisation",
+        deprecation_reason="The root organisation concept will be removed in a future version of OS2mo.",
+    )
+    ORGANISATION_UNIT = "OrganisationEnhed"
+    ORGANISATION_FUNCTION = "OrganisationFunktion"
 
 
 def access_log(

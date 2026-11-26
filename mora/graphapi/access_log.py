@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
-from enum import Enum
 from functools import partial
 from textwrap import dedent
 from uuid import UUID
@@ -16,6 +15,7 @@ from sqlalchemy import true
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
+from mora.access_log import AccessLogModel
 from mora.access_log import access_log
 from mora.config import Settings
 from mora.db import AccessLogOperation as AccessLogOperation
@@ -71,22 +71,6 @@ async def access_log_read_loader(
     result = list(await session.execute(query))
     buckets = bucket(result, apply(lambda operation_id, _: operation_id))
     return [[uuid for _, uuid in buckets[key]] for key in keys]
-
-
-@strawberry.enum
-class AccessLogModel(Enum):
-    ACCESS_LOG = "AccessLog"
-    ACTOR = "Actor"
-    PERSON = "Bruger"
-    FACET = "Facet"
-    IT_SYSTEM = "ItSystem"
-    CLASS = "Klasse"
-    ORGANISATION = strawberry.enum_value(
-        "Organisation",
-        deprecation_reason="The root organisation concept will be removed in a future version of OS2mo.",
-    )
-    ORGANISATION_UNIT = "OrganisationEnhed"
-    ORGANISATION_FUNCTION = "OrganisationFunktion"
 
 
 @strawberry.type(

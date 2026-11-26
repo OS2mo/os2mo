@@ -22,6 +22,7 @@ from sqlalchemy import delete
 from sqlalchemy import select
 from sqlalchemy import update
 
+from mora.access_log import AccessLogModel
 from mora.access_log import access_log
 from mora.auth.keycloak.models import Token
 from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
@@ -30,7 +31,6 @@ from mora.config import Settings
 from mora.db import AccessLogOperation
 from mora.db import AccessLogRead
 from mora.db import AsyncSession
-from mora.graphapi.access_log import AccessLogModel
 from mora.mapping import ADMIN
 from mora.util import DEFAULT_TIMEZONE
 from tests.conftest import BRUCE_UUID
