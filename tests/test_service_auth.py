@@ -156,7 +156,7 @@ def test_ensure_endpoints_depend_on_oidc_auth_function(all_routes, no_auth_endpo
     # all excluded endpoints must be explicitly specified in the list
 
     ensure_endpoints_depend_on_oidc_auth_function(
-        all_routes, no_auth_endpoints, mora.auth.keycloak.oidc.fetch_token
+        all_routes, no_auth_endpoints, mora.auth.middleware.authenticate
     )
 
 
@@ -171,7 +171,7 @@ def test_ensure_no_auth_endpoints_do_not_depend_on_auth_function(
     # all excluded endpoints must be explicitly specified in the list
 
     ensure_no_auth_endpoints_do_not_depend_on_auth_function(
-        all_routes, no_auth_endpoints, mora.auth.keycloak.oidc.fetch_token
+        all_routes, no_auth_endpoints, mora.auth.middleware.authenticate
     )
 
 

@@ -189,10 +189,6 @@ class AsyncSessionWithLock(AsyncSession):
             wrapped = with_lock()(original)
             setattr(self, method, wrapped)
 
-    @property
-    def under_testing_with_fake_db(self):
-        return False
-
 
 def create_sessionmaker(
     user, password, host, name, plan_cache_mode: str = "auto"

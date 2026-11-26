@@ -87,6 +87,8 @@ def test_query_organisation(graphapi_post: GraphAPIPost, root_org: UUID):
     }
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 async def test_invalid_query_no_organisation(graphapi_post: GraphAPIPost, monkeypatch):
     """Test that we get an error when querying with no organisation."""
     monkeypatch.setattr(
@@ -144,6 +146,8 @@ async def test_query_all_permutations_of_organisation(
     assert org == {}
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 async def test_non_existing_field_query(graphapi_post: GraphAPIPost, respx_mock):
     """Test that we are able to query our organisation."""
     query = "query { org { uuid, non_existing_field }}"
@@ -160,6 +164,8 @@ async def test_non_existing_field_query(graphapi_post: GraphAPIPost, respx_mock)
     assert result.data is None
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 async def test_no_fields_query(graphapi_post: GraphAPIPost, respx_mock):
     """Test that we are able to query our organisation."""
     query = "query { org { }}"

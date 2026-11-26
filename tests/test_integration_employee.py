@@ -862,6 +862,8 @@ def test_create_employee_with_details_fails_atomically(
     assert response.json() == [], "No engagement should have been created"
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "cpr",
     [

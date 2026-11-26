@@ -2,21 +2,16 @@
 # SPDX-License-Identifier: MPL-2.0
 """Middleware for authentification."""
 
-from collections.abc import AsyncIterator
-from collections.abc import Awaitable
-from collections.abc import Callable
 from uuid import UUID
 
 from fastapi import Depends
-from fastapi import Request
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from starlette_context import context
-from starlette_context import request_cycle_context
 
 from mora import depends
 from mora.auth.keycloak.models import Token
-from mora.auth.keycloak.oidc import token_getter
+from mora.auth.keycloak.oidc import fetch_token
 from mora.db import Actor
 from mora.db import AsyncSessionWithLock
 from mora.log import canonical_log_context
@@ -27,33 +22,14 @@ from mora.log import canonical_log_context
 # For more information, see the commit messsage of the change introducing this.
 LORA_USER_UUID = UUID("05211100-baad-1110-006e-6f2075756964")
 
-# These magical UUIDs were introduced in July of 2025 to distinguish between three
-# different situations in which the LORA_USER_UUID would be returned, namely whenever
-# a token was unparsable, when a token was missing an UUID, and when the auth middleware
-# was not run, but get_authenticated_user was called anyway.
-# Introducing these three new UUIDs allows us to distinguish which situation has occured
-# and should allow us to easier pinpoint auth issues in the future and ensure a richer
-# audit / registration log.
-UNABLE_TO_PARSE_TOKEN_UUID = UUID("bad070c1-baad-1110-006e-6f7061727365")
+# This magical UUID was introduced in July of 2025 to distinguish the situation
+# where get_authenticated_user is called without an authenticated actor, e.g.
+# outside of a request, from the LORA_USER_UUID. This should allow us to easier
+# pinpoint auth issues and ensure a richer audit / registration log.
 NO_AUTH_MIDDLEWARE_UUID = UUID("5ec0fa11-baad-1110-006d-696477617265")
 
 
 _MIDDLEWARE_KEY = "authenticated_user"
-
-
-def _is_testing_snapshot_or_restore(request: Request) -> bool:
-    return request.url.path.startswith("/testing")
-
-
-def _is_unit_testing_with_fake_db(session: AsyncSessionWithLock) -> bool:
-    return session.under_testing_with_fake_db
-
-
-def _should_save_actor(request: Request, session: AsyncSessionWithLock) -> bool:
-    return not (
-        _is_testing_snapshot_or_restore(request)
-        or _is_unit_testing_with_fake_db(session)
-    )
 
 
 async def _save_actor(session: AsyncSessionWithLock, token: Token) -> UUID:
@@ -87,29 +63,21 @@ async def _save_actor(session: AsyncSessionWithLock, token: Token) -> UUID:
     return result.scalar_one()
 
 
-async def set_authenticated_user(
-    request: Request,
-    session: depends.Session,
-    get_token: Callable[[], Awaitable[Token]] = Depends(token_getter),
-) -> AsyncIterator[None]:
-    # TODO: refactor this auth method
-    # https://redmine.magenta.dk/issues/67592
-    actor: UUID | None = None
-    try:
-        token = await get_token()
-    except Exception:
-        actor = UNABLE_TO_PARSE_TOKEN_UUID
-        name = "Unable to parse token"
-    else:
-        name = token.preferred_username
-        if _should_save_actor(request, session):
-            actor = await _save_actor(session, token)
+async def set_authenticated_user(session: AsyncSessionWithLock, token: Token) -> None:
+    """Record the actor making the request as the author of its changes."""
+    actor = await _save_actor(session, token)
+    canonical_log_context()["actor"] = {
+        "uuid": str(actor),
+        "name": token.preferred_username,
+    }
+    context[_MIDDLEWARE_KEY] = actor
 
-    canonical_log_context()["actor"] = {"uuid": str(actor), "name": name}
 
-    data = {**context, _MIDDLEWARE_KEY: actor}
-    with request_cycle_context(data):
-        yield
+async def authenticate(
+    session: depends.Session, token: Token = Depends(fetch_token)
+) -> None:
+    """FastAPI dependency for routers where every request must be authenticated."""
+    await set_authenticated_user(session, token)
 
 
 def get_authenticated_user() -> UUID:

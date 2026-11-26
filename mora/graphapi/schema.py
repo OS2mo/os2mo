@@ -31,6 +31,7 @@ from strawberry.utils.await_maybe import await_maybe
 from structlog import get_logger
 
 from mora import config
+from mora.auth.middleware import set_authenticated_user
 from mora.cel.policies import PolicyCEL
 from mora.cel.rolebinding_rules import RolebindingRuleCEL
 from mora.db import Collection
@@ -173,6 +174,7 @@ class IsAuthenticatedExtension(SchemaExtension):
         except Exception as e:
             raise GraphQLError("User is not authenticated") from e
         self.execution_context.context.token = token
+        await set_authenticated_user(self.execution_context.context.session, token)
         yield
 
 

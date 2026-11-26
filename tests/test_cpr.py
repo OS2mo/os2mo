@@ -16,6 +16,8 @@ from tests.conftest import SP_RESPONSE
 from tests.conftest import SP_UUID
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "cpr_number",
     [
@@ -41,6 +43,8 @@ def test_cpr_lookup_raises_on_wrong_length(
     }
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.envvar({"CPR_VALIDATE_BIRTHDATE": "false"})
 def test_birthdate_validation_disabled(service_client: TestClient) -> None:
     """Validation of CPR birthdate can be disabled by a feature flag"""
@@ -159,6 +163,8 @@ def test_get_citizen_uses_version_kwarg(respx_mock: respx.MockRouter) -> None:
     assert citizen["efternavn"] == "Doe"
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.envvar(
     {
         # Set up mock Serviceplatform access, with a certificate `httpx` can load.
@@ -210,6 +216,8 @@ def test_handle_erstatningspersonnummer(
     assert actual_result == expected_result
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.envvar(
     {
         # Skip CPR birthdate validation, and set up mock Serviceplatform access.

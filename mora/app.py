@@ -30,9 +30,8 @@ from mora.auth.exceptions import AuthenticationError
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.oidc import authorization_exception_handler
 from mora.auth.keycloak.oidc import create_keycloak_auth
-from mora.auth.keycloak.oidc import fetch_token
 from mora.auth.keycloak.oidc import service_api_auth
-from mora.auth.middleware import set_authenticated_user
+from mora.auth.middleware import authenticate
 from mora.common import lora_connector_context
 from mora.db.events import setup_event_metrics
 from mora.graphapi.middleware import is_graphql_context
@@ -253,7 +252,6 @@ def create_app():
             Depends(now_per_request),
             Depends(log.canonical_log_dependency),
             Depends(transaction_per_request),
-            Depends(set_authenticated_user),
             Depends(set_graphql_version_from_url),
             Depends(query_args_context),
             Depends(lora_connector_context),
@@ -287,7 +285,7 @@ def create_app():
                 router,
                 prefix="/service",
                 tags=["Service." + name],
-                dependencies=[Depends(fetch_token), Depends(service_api_auth)],
+                dependencies=[Depends(authenticate), Depends(service_api_auth)],
             )
         app.include_router(
             service_catchall_router(),

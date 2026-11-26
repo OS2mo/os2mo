@@ -4,6 +4,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "url",
     [
@@ -23,6 +25,8 @@ def test_create_invalid_type(service_client: TestClient, url: str) -> None:
     }
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
 def test_invalid_json(service_client: TestClient) -> None:
     response = service_client.request(
         "POST", "/service/details/edit", json="kaflaflibob"
