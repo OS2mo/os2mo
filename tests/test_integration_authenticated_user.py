@@ -5,7 +5,6 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from mora import lora
-from mora.auth.middleware import LORA_USER_UUID
 from mora.db import Actor
 from mora.db import AsyncSession
 
@@ -38,4 +37,3 @@ async def test_register_brugerref(
     )
     userref = actual["brugerref"]
     assert userref == str(actor)
-    assert userref != str(LORA_USER_UUID)

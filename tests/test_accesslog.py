@@ -23,7 +23,6 @@ from sqlalchemy import select
 from sqlalchemy import update
 
 from mora.access_log import access_log
-from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
 from mora.config import Settings
 from mora.db import AccessLogOperation
 from mora.db import AccessLogRead
@@ -32,9 +31,11 @@ from mora.graphapi.access_log import AccessLogModel
 from mora.mapping import ADMIN
 from mora.util import DEFAULT_TIMEZONE
 from tests.conftest import BRUCE_UUID
+from tests.conftest import TEST_ACTOR_UUID
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 from tests.conftest import admin_auth_uuid
+from tests.util import authenticate_as
 
 
 async def assert_empty_access_log_tables(session) -> None:
@@ -56,7 +57,7 @@ async def assert_one_access_log_entry(
     arguments: dict[str, Any] | None = None,
     now: datetime | None = None,
 ) -> None:
-    actor = actor or NO_AUTH_MIDDLEWARE_UUID
+    actor = actor or TEST_ACTOR_UUID
     arguments = arguments or {}
     now = now or (datetime.now(tz=DEFAULT_TIMEZONE) - timedelta(minutes=1))
     uuids = uuids or []
@@ -89,6 +90,7 @@ async def test_access_log_database(empty_db: AsyncSession) -> None:
     await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
+    authenticate_as(TEST_ACTOR_UUID)
     access_log(empty_db, Settings(), "test_accesslog", "AccessLog", {}, [uuid])
 
     await assert_one_access_log_entry(empty_db, "AccessLog", "test_accesslog", [uuid])
@@ -452,6 +454,7 @@ async def test_access_log_enabled(empty_db: AsyncSession) -> None:
     await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
+    authenticate_as(TEST_ACTOR_UUID)
     access_log(empty_db, Settings(), "test_access_log", "AccessLog", {}, [uuid])
     await assert_one_access_log_entry(empty_db, "AccessLog", "test_access_log", [uuid])
 
@@ -531,7 +534,7 @@ async def test_access_log_enabled_for_user_graphql(
 @pytest.mark.envvar(
     {
         "ACCESS_LOG_ENABLE": "True",
-        "ACCESS_LOG_NO_LOG_UUIDS": json.dumps([str(NO_AUTH_MIDDLEWARE_UUID)]),
+        "ACCESS_LOG_NO_LOG_UUIDS": json.dumps([str(TEST_ACTOR_UUID)]),
     }
 )
 async def test_access_log_disabled_for_user(empty_db: AsyncSession) -> None:
@@ -540,6 +543,7 @@ async def test_access_log_disabled_for_user(empty_db: AsyncSession) -> None:
     await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
+    authenticate_as(TEST_ACTOR_UUID)
     access_log(empty_db, Settings(), "test_access_log", "AccessLog", {}, [uuid])
     await assert_empty_access_log_tables(empty_db)
 
@@ -554,6 +558,7 @@ async def test_access_log_enabled_for_user(empty_db: AsyncSession) -> None:
     await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
+    authenticate_as(TEST_ACTOR_UUID)
     access_log(empty_db, Settings(), "test_access_log", "AccessLog", {}, [uuid])
     await assert_one_access_log_entry(empty_db, "AccessLog", "test_access_log", [uuid])
 

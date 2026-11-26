@@ -16,19 +16,6 @@ from mora.db import Actor
 from mora.db import AsyncSessionWithLock
 from mora.log import canonical_log_context
 
-# This magical UUID was introduced into LoRas source code back in
-# December of 2015, it is kept here for backwards compatibility, but should
-# be eliminated in the future, by ensuring that Keycloak UUIDs are always set.
-# For more information, see the commit messsage of the change introducing this.
-LORA_USER_UUID = UUID("05211100-baad-1110-006e-6f2075756964")
-
-# This magical UUID was introduced in July of 2025 to distinguish the situation
-# where get_authenticated_user is called without an authenticated actor, e.g.
-# outside of a request, from the LORA_USER_UUID. This should allow us to easier
-# pinpoint auth issues and ensure a richer audit / registration log.
-NO_AUTH_MIDDLEWARE_UUID = UUID("5ec0fa11-baad-1110-006d-696477617265")
-
-
 _MIDDLEWARE_KEY = "authenticated_user"
 
 
@@ -82,4 +69,4 @@ async def authenticate(
 
 def get_authenticated_user() -> UUID:
     """Return the UUID of the authenticated actor."""
-    return context.get(_MIDDLEWARE_KEY) or NO_AUTH_MIDDLEWARE_UUID
+    return context[_MIDDLEWARE_KEY]

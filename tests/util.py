@@ -7,6 +7,7 @@ import re
 from json import dumps
 from unittest.mock import patch
 from urllib.parse import parse_qsl
+from uuid import UUID
 
 import aioresponses
 import jinja2
@@ -19,6 +20,7 @@ from yarl import URL
 
 from mora import db
 from mora import lora
+from mora.auth.middleware import _MIDDLEWARE_KEY
 from mora.service.address_handler.dar import load_addresses
 
 TESTS_DIR = os.path.dirname(__file__)
@@ -317,6 +319,11 @@ async def patch_query_args(query_args=None):
         query_args = {}
     with patch("mora.util.context", new={"query_args": query_args}):
         yield
+
+
+def authenticate_as(actor: UUID) -> None:
+    """Act as the given actor outside of a request."""
+    context[_MIDDLEWARE_KEY] = actor
 
 
 @contextlib.contextmanager

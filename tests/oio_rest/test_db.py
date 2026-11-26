@@ -17,6 +17,8 @@ from oio_rest import db
 from oio_rest.custom_exceptions import BadRequestException
 from oio_rest.custom_exceptions import DBException
 from oio_rest.custom_exceptions import NotFoundException
+from tests.conftest import TEST_ACTOR_UUID
+from tests.util import authenticate_as
 
 
 def mock_sql_session(monkeypatch: MonkeyPatch) -> AsyncMock:
@@ -28,6 +30,7 @@ def mock_sql_session(monkeypatch: MonkeyPatch) -> AsyncMock:
         result = await session.execute(sql)
         return result.fetchone()
     """
+    authenticate_as(TEST_ACTOR_UUID)
     # Mock session
     get_session = Mock()
     monkeypatch.setattr("oio_rest.db.get_session", get_session)

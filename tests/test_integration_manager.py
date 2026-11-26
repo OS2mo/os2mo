@@ -11,7 +11,9 @@ from more_itertools import one
 from mora import lora
 from mora import util as mora_util
 from tests.cases import assert_registrations_equal
+from tests.conftest import TEST_ACTOR_UUID
 from tests.conftest import GraphAPIPost
+from tests.util import authenticate_as
 
 mock_uuid = "1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5"
 userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
@@ -605,6 +607,7 @@ async def test_read_manager_multiple_responsibilities(
     ]
 
     async with another_transaction():
+        authenticate_as(TEST_ACTOR_UUID)
         await c.organisationfunktion.update(
             {
                 "relationer": {

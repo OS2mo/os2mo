@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 import pytest
 
+from tests.conftest import TEST_ACTOR_UUID
 from tests.conftest import GraphAPIPost
+from tests.util import authenticate_as
 from tests.util import load_fixture
 
 
@@ -14,6 +16,7 @@ async def test_dangling_foreign_key(graphapi_post: GraphAPIPost) -> None:
     address_type_uuid = "cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d"
     employee_address_type_uuid = "baddc4eb-406e-4c6b-8229-17e4a21d3550"
 
+    authenticate_as(TEST_ACTOR_UUID)
     await load_fixture(
         "klassifikation/facet",
         "create_facet_employee_address_type.json",

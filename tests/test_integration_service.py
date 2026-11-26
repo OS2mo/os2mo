@@ -5,6 +5,9 @@ from collections.abc import Callable
 import pytest
 from fastapi.testclient import TestClient
 
+from tests.conftest import TEST_ACTOR_UUID
+from tests.util import authenticate_as
+
 from . import util
 from .conftest import GraphAPIPost
 
@@ -203,6 +206,7 @@ async def test_employee(another_transaction, service_client: TestClient) -> None
     assert response.json() == {"total": 0, "items": [], "offset": 0}
 
     async with another_transaction():
+        authenticate_as(TEST_ACTOR_UUID)
         await util.load_fixture(
             "organisation/bruger",
             "create_bruger_andersine.json",

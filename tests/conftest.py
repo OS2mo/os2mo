@@ -66,6 +66,7 @@ from oio_rest.organisation import Organisation
 from ramodels.mo import Validity
 from tests.hypothesis_utils import validity_model_strat
 from tests.util import MockAioresponses
+from tests.util import authenticate_as
 from tests.util import darmock
 from tests.util import load_sample_structures
 
@@ -134,6 +135,9 @@ def clear_settings_cache() -> YieldFixture[None]:
 
 
 BRUCE_UUID = UUID("99e7b256-7dfa-4ee8-95c6-e3abe82e236a")
+# The actor of changes made by tests outside of a request, e.g. the fixture data.
+# Such tests must call `authenticate_as()` first.
+TEST_ACTOR_UUID = UUID("5ec0fa11-baad-1110-006d-696477617265")
 ALVIDA_UUID = UUID("0fb62199-cb9e-4083-ba45-2a63bfd142d7")
 ACTIVE_DIRECTORY_UUID = UUID("59c135c9-2b15-41cc-97c8-b5dff7180beb")
 
@@ -544,6 +548,7 @@ async def fixture_database_template(
     async with _database_copy(superuser, empty_database_template) as database_name:
         # Load fixture data
         async with _use_session(lora_settings, database_name):
+            authenticate_as(TEST_ACTOR_UUID)
             await load_sample_structures()
         yield database_name
 

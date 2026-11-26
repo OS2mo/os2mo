@@ -10,6 +10,8 @@ from fastapi.testclient import TestClient
 from mora import lora
 from mora.service import orgunit as service_orgunit
 from tests.cases import assert_registrations_equal
+from tests.conftest import TEST_ACTOR_UUID
+from tests.util import authenticate_as
 
 from . import util
 
@@ -1179,6 +1181,7 @@ async def test_move_org_unit_wrong_org(
 
     async with another_transaction():
         org_unit_uuid = "b688513d-11f7-4efc-b679-ab082a2055d0"
+        authenticate_as(TEST_ACTOR_UUID)
         other_org_uuid = await util.load_fixture(
             "organisation/organisation",
             "create_organisation_AU.json",

@@ -10,8 +10,10 @@ from mora import lora
 from mora.util import get_effect_from
 from tests import util
 from tests.cases import assert_registrations_equal
+from tests.conftest import TEST_ACTOR_UUID
 from tests.conftest import GQLResponse
 from tests.conftest import GraphAPIPost
+from tests.util import authenticate_as
 
 ean_class = {
     "example": "5712345000014",
@@ -1153,6 +1155,7 @@ async def test_missing_class(
     service_client: TestClient,
 ) -> None:
     with util.darmock("dawa-addresses.json", allow_mox=True, real_http=True):
+        authenticate_as(TEST_ACTOR_UUID)
         await util.load_fixture(
             "organisation/organisationfunktion",
             "create_organisationfunktion_email_andersand.json",
@@ -1190,6 +1193,7 @@ async def test_missing_address(another_transaction, service_client: TestClient) 
             mock.get(pattern, json={t: []})
 
         async with another_transaction():
+            authenticate_as(TEST_ACTOR_UUID)
             await lora.Connector().organisationfunktion.update(
                 {
                     "relationer": {
@@ -1266,6 +1270,7 @@ async def test_missing_error(another_transaction, service_client: TestClient) ->
         )
 
         async with another_transaction():
+            authenticate_as(TEST_ACTOR_UUID)
             await lora.Connector().organisationfunktion.update(
                 {
                     "relationer": {

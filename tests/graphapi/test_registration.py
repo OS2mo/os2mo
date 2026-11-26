@@ -12,8 +12,8 @@ import pytest
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
 
-from mora.auth.middleware import NO_AUTH_MIDDLEWARE_UUID
 from mora.mapping import ADMIN
+from tests.conftest import TEST_ACTOR_UUID
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 
@@ -118,7 +118,7 @@ async def test_read_object_registration(graphapi_post) -> None:
     assert org_unit["uuid"] == uuid
 
     registration = one(org_unit["registrations"])
-    assert registration["actor"] == str(NO_AUTH_MIDDLEWARE_UUID)
+    assert registration["actor"] == str(TEST_ACTOR_UUID)
     assert registration["model"] == "org_unit"
     assert registration["uuid"] == uuid
     datetime.fromisoformat(registration["start"])
@@ -150,7 +150,7 @@ async def test_read_top_level_registration(graphapi_post) -> None:
     assert response.data
     registration = one(response.data["registrations"]["objects"])
 
-    assert registration["actor"] == str(NO_AUTH_MIDDLEWARE_UUID)
+    assert registration["actor"] == str(TEST_ACTOR_UUID)
     assert registration["model"] == "org_unit"
     assert registration["uuid"] == uuid
     datetime.fromisoformat(registration["start"])
