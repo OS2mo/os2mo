@@ -72,9 +72,9 @@ class RegistrationBase:
         )
     )
     def actor_object(self, root: "RegistrationBase", info: Info) -> LazyActor:
-        from .actor import actor_uuid_to_actor
+        from .actor import Actor
 
-        return actor_uuid_to_actor(root.actor)
+        return Actor(uuid=root.actor)
 
     # Name of the entity model
     model: str = strawberry.field(

@@ -85,21 +85,6 @@ class Actor:
     )
 
 
-def actor_uuid_to_actor(actor_uuid: UUID | None) -> Actor:
-    """Translate an actor UUID to its corresponding Actor object.
-
-    Args:
-        actor_uuid: UUID of the actor to lookup.
-
-    Returns:
-        The Actor object for the actor_uuid provided.
-    """
-    # Special case for missing actors, should ideally never happen
-    if actor_uuid is None:  # pragma: no cover
-        return Actor(uuid=UUID("ffffffff-ffff-ffff-ffff-ffffffffffff"))
-    return Actor(uuid=actor_uuid)
-
-
 @strawberry.input(description="Actor filter.")
 class ActorFilter:
     uuids: list[UUID] | None = strawberry.field(
@@ -145,7 +130,7 @@ async def actor_resolver(
     )
 
     return ObjectsAndCursor(
-        objects=[actor_uuid_to_actor(uuid) for uuid in uuids],
+        objects=[Actor(uuid=uuid) for uuid in uuids],
         next_cursor=next_cursor,
     )
 
@@ -165,7 +150,7 @@ class Myself:
 def myself_resolver(info: MOInfo) -> Myself:
     token = info.context.token
     return Myself(
-        actor=actor_uuid_to_actor(get_authenticated_user()),
+        actor=Actor(uuid=get_authenticated_user()),
         email=token.email,
         username=token.preferred_username,
         roles=sorted(token.realm_access.roles),

@@ -22,7 +22,7 @@ from mora.graphapi.custom_schema import get_version
 from mora.graphapi.filters import gen_filter_string
 from mora.graphapi.version import Version
 
-from .actor import actor_uuid_to_actor
+from .actor import Actor
 from .lazy import LazyActor
 from .lazy import LazyClass
 from .models import ClassRead
@@ -138,7 +138,7 @@ class RolebindingRuleRevision:
 
     @strawberry.field(description="The integration or user who wrote the revision.")
     def actor(self) -> LazyActor:
-        return actor_uuid_to_actor(self.actor_uuid)
+        return Actor(uuid=self.actor_uuid)
 
     name: str = strawberry.field(
         description="Human-readable name of the rule.",

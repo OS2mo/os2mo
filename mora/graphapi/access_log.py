@@ -28,7 +28,6 @@ from mora.graphapi.filters import gen_filter_table
 from mora.graphapi.version import Version
 
 from .actor import Actor
-from .actor import actor_uuid_to_actor
 from .paged import CursorType
 from .paged import LimitType
 from .paged import ObjectsAndCursor
@@ -142,7 +141,7 @@ class AccessLog:
         )
     )
     async def actor_object(self, root: "AccessLog", info: Info) -> Actor:
-        return actor_uuid_to_actor(root.actor)
+        return Actor(uuid=root.actor)
 
     # Name of the entity model
     model: AccessLogModel = strawberry.field(
