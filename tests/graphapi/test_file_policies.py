@@ -12,7 +12,10 @@ from mora.db import Collection
 from tests.conftest import GraphAPIPost
 from tests.conftest import SetAuth
 from tests.conftest import SetRules
+from tests.conftest import SetWriteRules
 from tests.conftest import UploadFile
+from tests.conftest import assert_denied
+from tests.conftest import assert_granted
 
 
 @pytest.mark.integration_test
@@ -149,3 +152,35 @@ async def test_a_file_gets_the_fields_of_the_rules_matching_it(
     error = one(response.errors)
     assert error["message"] == "No policy approved the access"
     assert error["path"] == ["files", "objects", denied_index, "text_contents"]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_delete_file_is_granted_by_a_write_rule(
+    set_auth: SetAuth,
+    graphapi_post: GraphAPIPost,
+    set_write_rules: SetWriteRules,
+    upload_file: UploadFile,
+) -> None:
+    """A write rule grants deleting files in the store its condition names."""
+    # Uploaded as the admin, before the caller is switched
+    assert upload_file("report.csv", b"data", file_store="EXPORTS").errors is None
+    assert upload_file("report.csv", b"data", file_store="INSIGHTS").errors is None
+    set_auth({"file_deleter"}, uuid4())
+    mutation = """
+        mutation DeleteFile($file_store: FileStore!) {
+            delete_file(file_store: $file_store, file_name: "report.csv")
+        }
+    """
+
+    # Without a rule, the role grants nothing
+    assert_denied(graphapi_post(mutation, {"file_store": "INSIGHTS"}))
+
+    await set_write_rules(
+        role="file_deleter",
+        mutator="delete_file",
+        condition='args.file_store == "INSIGHTS"',
+    )
+
+    assert_granted(graphapi_post(mutation, {"file_store": "INSIGHTS"}))
+    assert_denied(graphapi_post(mutation, {"file_store": "EXPORTS"}))
