@@ -33,8 +33,7 @@ DEPRECATION_NOTICE = """
 
 
 # Based on
-# https://github.com/graphql/graphiql/blob/aacdc8586fa4346a4681e73e29af7afda4718617/examples/graphiql-cdn/index.html
-# https://github.com/strawberry-graphql/strawberry/blob/13caf46759c0db59a1b43565aba9772ce4f93e1d/strawberry/static/graphiql.html
+# https://github.com/graphql/graphiql/blob/c095844f557934ec23e9604a19a964baf20ee7ab/examples/graphiql-cdn/index.html
 HTML = """
 <!doctype html>
 <html lang="en">
@@ -57,31 +56,21 @@ HTML = """
       #graphiql {
         height: 100dvh;
       }
-      .graphiql-logo {
-        display: none;
-      }
     </style>
-    <link rel="stylesheet" href="https://esm.sh/graphiql@5.1.1/dist/style.css" />
-    <link
-      rel="stylesheet"
-      href="https://esm.sh/@graphiql/plugin-explorer@5.1.1/dist/style.css"
-    />
+    <link rel="stylesheet" href="https://esm.sh/graphiql@6.0.1/dist/style.css" />
     <script type="importmap">
       {
         "imports": {
-          "react": "https://esm.sh/react@19.1.0",
-          "react/": "https://esm.sh/react@19.1.0/",
-
-          "react-dom": "https://esm.sh/react-dom@19.1.0",
-          "react-dom/": "https://esm.sh/react-dom@19.1.0/",
-
-          "graphiql": "https://esm.sh/graphiql@5.1.1?standalone&external=react,react-dom,@graphiql/react,graphql",
-          "graphiql/": "https://esm.sh/graphiql@5.1.1/",
-          "@graphiql/plugin-explorer": "https://esm.sh/@graphiql/plugin-explorer@5.1.1?standalone&external=react,@graphiql/react,graphql",
-          "@graphiql/react": "https://esm.sh/@graphiql/react@0.37.3?standalone&external=react,react-dom,graphql,@graphiql/toolkit,@emotion/is-prop-valid",
-
-          "@graphiql/toolkit": "https://esm.sh/@graphiql/toolkit@0.11.3?standalone&external=graphql",
-          "graphql": "https://esm.sh/graphql@16.11.0",
+          "react": "https://esm.sh/react@19.3.1",
+          "react/": "https://esm.sh/react@19.3.1/",
+          "react-dom": "https://esm.sh/react-dom@19.3.1",
+          "react-dom/": "https://esm.sh/react-dom@19.3.1/",
+          "graphiql": "https://esm.sh/graphiql@6.0.1?standalone&external=react,react-dom,@graphiql/react,graphql",
+          "graphiql/": "https://esm.sh/graphiql@6.0.1/",
+          "graphiql/setup-workers/esm.sh": "https://esm.sh/graphiql@6.0.1/setup-workers/esm.sh?deps=@graphiql/react@1.0.2",
+          "@graphiql/react": "https://esm.sh/@graphiql/react@1.0.2?standalone&external=react,react-dom,graphql,@graphiql/toolkit,@emotion/is-prop-valid",
+          "@graphiql/toolkit": "https://esm.sh/@graphiql/toolkit@1.0.1?standalone&external=graphql",
+          "graphql": "https://esm.sh/graphql@17.1.0",
           "@emotion/is-prop-valid": "data:text/javascript,",
 
           "keycloak-js": "https://esm.sh/keycloak-js@26.2.1"
@@ -91,9 +80,8 @@ HTML = """
     <script type="module">
       import React from "react";
       import ReactDOM from "react-dom/client";
-      import { GraphiQL, HISTORY_PLUGIN } from "graphiql";
-      import { createGraphiQLFetcher } from "@graphiql/toolkit";
-      import { explorerPlugin } from "@graphiql/plugin-explorer";
+      import { GraphiQL } from "graphiql";
+      import { createTransport } from "@graphiql/toolkit";
       import "graphiql/setup-workers/esm.sh";
       import Keycloak from "keycloak-js";
 
@@ -143,16 +131,18 @@ HTML = """
         });
       };
 
-      const fetcher = createGraphiQLFetcher({
-        url: window.location.href,
+      const transport = createTransport({
+        // Exclude the fragment, which holds the Keycloak login response on load
+        url: window.location.origin + window.location.pathname,
         fetch: authorizedFetch,
+        // Skip method discovery; MO responds to OPTIONS with 405
+        supportedMethods: ["POST"],
       });
-      const plugins = [HISTORY_PLUGIN, explorerPlugin()];
 
       function App() {
         return React.createElement(GraphiQL, {
-          fetcher,
-          plugins,
+          transport,
+          brand: "OS2mo",
           defaultEditorToolsVisibility: true,
         });
       }

@@ -414,6 +414,20 @@ class EngagementFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    not_: EngagementFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description=dedent(
+            """\
+            Negated engagement filter limiting which entries are returned.
+
+            Engagements matching the nested filter are excluded from the result.
+            The nested filter is evaluated independently of the outer filter,
+            using its own `from_date`, `to_date` and `registration_time`.
+            """
+        ),
+    )
+
 
 @strawberry.input(description="Facet filter.")
 class FacetFilter(BaseFilter):
@@ -564,6 +578,20 @@ class ITUserFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
             Primary class filter limiting which entries are returned.
 
             Set to `null` to only return IT users without a primary class.
+            """
+        ),
+    )
+
+    not_: ITUserFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description=dedent(
+            """\
+            Negated IT user filter limiting which entries are returned.
+
+            IT users matching the nested filter are excluded from the result.
+            The nested filter is evaluated independently of the outer filter,
+            using its own `from_date`, `to_date` and `registration_time`.
             """
         ),
     )
