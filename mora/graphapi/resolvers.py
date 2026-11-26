@@ -40,6 +40,7 @@ from strawberry.types.unset import UnsetType
 
 from mora import mapping
 from mora import util
+from mora.access_log import AccessLogModel
 from mora.access_log import access_log
 from mora.config import Settings
 from mora.db import AsyncSession
@@ -391,7 +392,7 @@ async def facet_resolver(
         session,
         info.context.settings,
         "filter_facets",
-        "Facet",
+        AccessLogModel.FACET,
         {
             "filter": filter,
             "limit": limit,
@@ -586,7 +587,7 @@ async def class_resolver(
         session,
         info.context.settings,
         "filter_classes",
-        "Klasse",
+        AccessLogModel.CLASS,
         {
             "filter": filter,
             "limit": limit,
@@ -840,7 +841,7 @@ async def address_resolver(
         session,
         info.context.settings,
         "filter_addresses",
-        "OrganisationFunktion",
+        AccessLogModel.ORGANISATION_FUNCTION,
         {
             "filter": filter,
             "limit": limit,
@@ -1048,7 +1049,7 @@ async def association_resolver(
         session,
         info.context.settings,
         "filter_associations",
-        "OrganisationFunktion",
+        AccessLogModel.ORGANISATION_FUNCTION,
         {
             "filter": filter,
             "limit": limit,
@@ -1229,7 +1230,7 @@ async def employee_resolver(
         session,
         info.context.settings,
         "filter_employees",
-        "Bruger",
+        AccessLogModel.PERSON,
         {
             "filter": filter,
             "limit": limit,
@@ -1517,7 +1518,7 @@ async def engagement_resolver(
         session,
         info.context.settings,
         "filter_engagements",
-        "OrganisationFunktion",
+        AccessLogModel.ORGANISATION_FUNCTION,
         {
             "filter": filter,
             "limit": limit,
@@ -1965,7 +1966,7 @@ async def manager_resolver(
         session,
         info.context.settings,
         "filter_managers",
-        "OrganisationFunktion",
+        AccessLogModel.ORGANISATION_FUNCTION,
         {
             "filter": filter,
             "limit": limit,
@@ -2141,7 +2142,7 @@ async def owner_resolver(
         session,
         info.context.settings,
         "filter_owners",
-        "OrganisationFunktion",
+        AccessLogModel.ORGANISATION_FUNCTION,
         {
             "filter": filter,
             "limit": limit,
@@ -2549,7 +2550,7 @@ async def organisation_unit_resolver(
         session,
         info.context.settings,
         "filter_orgunits",
-        "OrganisationEnhed",
+        AccessLogModel.ORGANISATION_UNIT,
         {
             "filter": filter,
             "limit": limit,
@@ -2680,7 +2681,7 @@ async def it_system_resolver(
         session,
         info.context.settings,
         "filter_itsystems",
-        "ITSystem",
+        AccessLogModel.IT_SYSTEM,
         {
             "filter": filter,
             "limit": limit,
@@ -2993,7 +2994,7 @@ async def it_user_resolver(
         session,
         info.context.settings,
         "filter_itusers",
-        "OrganisationFunktion",
+        AccessLogModel.ORGANISATION_FUNCTION,
         {
             "filter": filter,
             "limit": limit,
@@ -3136,7 +3137,7 @@ async def kle_resolver(
         session,
         info.context.settings,
         "filter_kles",
-        "OrganisationFunktion",
+        AccessLogModel.ORGANISATION_FUNCTION,
         {
             "filter": filter,
             "limit": limit,
@@ -3306,7 +3307,7 @@ async def leave_resolver(
         session,
         info.context.settings,
         "filter_leaves",
-        "OrganisationFunktion",
+        AccessLogModel.ORGANISATION_FUNCTION,
         {
             "filter": filter,
             "limit": limit,
@@ -3475,7 +3476,7 @@ async def related_unit_resolver(
         session,
         info.context.settings,
         "filter_related_units",
-        "OrganisationFunktion",
+        AccessLogModel.ORGANISATION_FUNCTION,
         {
             "filter": filter,
             "limit": limit,
@@ -3664,7 +3665,7 @@ async def rolebinding_resolver(
         session,
         info.context.settings,
         "filter_rolebindings",
-        "OrganisationFunktion",
+        AccessLogModel.ORGANISATION_FUNCTION,
         {
             "filter": filter,
             "limit": limit,
@@ -3939,7 +3940,7 @@ async def registration_resolver(
         session,
         info.context.settings,
         "resolve_registrations",
-        "Registration",
+        AccessLogModel.REGISTRATION,
         {
             "limit": limit,
             "cursor": cursor,

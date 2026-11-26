@@ -11,6 +11,7 @@ import structlog
 from mora import config
 from mora import serviceplatformen
 from mora import util
+from mora.access_log import AccessLogModel
 from mora.access_log import access_log
 from mora.db import AsyncSession
 from mora.graphapi.context import MOInfo
@@ -53,7 +54,7 @@ async def cpr_resolver(info: MOInfo, filter: CPRFilter) -> CPRPerson:
         session,
         settings=info.context.settings,
         operation="lookup_cpr",
-        class_name="CPRPerson",
+        model=AccessLogModel.CPR_LOOKUP,
         arguments={"filter": filter},
         # No UUIDs are logged, as the person is read from Serviceplatformen rather than MO.
         uuids=[],

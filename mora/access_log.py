@@ -7,6 +7,7 @@ from uuid import UUID
 
 import strawberry
 from fastapi.encoders import jsonable_encoder
+from more_itertools import one
 
 from mora.auth.middleware import get_authenticated_user
 from mora.config import Settings
@@ -20,7 +21,9 @@ class AccessLogModel(Enum):
     ACCESS_LOG = "AccessLog"
     ACTOR = "Actor"
     PERSON = "Bruger"
+    CPR_LOOKUP = "CPRPerson"
     FACET = "Facet"
+    FILE = "File"
     IT_SYSTEM = "ItSystem"
     CLASS = "Klasse"
     ORGANISATION = strawberry.enum_value(
@@ -29,13 +32,23 @@ class AccessLogModel(Enum):
     )
     ORGANISATION_UNIT = "OrganisationEnhed"
     ORGANISATION_FUNCTION = "OrganisationFunktion"
+    REGISTRATION = "Registration"
+
+    @classmethod
+    def from_lora(cls, class_name: str) -> "AccessLogModel":
+        """Get the model of a LoRa class.
+
+        LoRa class names are case-insensitive, and are not consistently cased
+        by their callers, e.g. both "ItSystem" and "itsystem" are used.
+        """
+        return one(model for model in cls if model.value.lower() == class_name.lower())
 
 
 def access_log(
     session: AsyncSession,
     settings: Settings,
     operation: str,
-    class_name: str,
+    model: AccessLogModel,
     arguments: dict[str, Any],
     uuids: Sequence[UUID],
 ) -> None:
@@ -45,7 +58,7 @@ def access_log(
         session: SQLAlchemy sync or async session within an active transaction.
         settings: Settings deciding whether, and for whom, to log.
         operation: Name of the current operation.
-        class_name: Name of the data entry being accessed.
+        model: Model of the data entry being accessed.
         arguments: Arguments provided to operation.
         uuids: UUIDs read by the operation.
     """
@@ -56,7 +69,7 @@ def access_log(
 
     operation = AccessLogOperation(
         actor=get_authenticated_user(),
-        model=class_name,
+        model=model.value,
         operation=operation,
         arguments=jsonable_encoder(arguments),
     )

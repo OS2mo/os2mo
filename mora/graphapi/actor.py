@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from strawberry.dataloader import DataLoader
 
+from mora.access_log import AccessLogModel
 from mora.access_log import access_log
 from mora.db import Actor as ActorTable
 from mora.graphapi.context import MOInfo
@@ -127,7 +128,7 @@ async def actor_resolver(
         session,
         info.context.settings,
         "resolve_actors",
-        "Actor",
+        AccessLogModel.ACTOR,
         {
             "limit": limit,
             "cursor": cursor,

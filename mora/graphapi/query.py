@@ -12,6 +12,7 @@ from sqlalchemy import select
 from strawberry.types import Info
 
 from mora import db
+from mora.access_log import AccessLogModel
 from mora.access_log import access_log
 from mora.config import Settings
 from mora.db import AsyncSession
@@ -165,7 +166,7 @@ async def file_resolver(
         session,
         info.context.settings,
         "file_resolver",
-        "File",
+        AccessLogModel.FILE,
         {
             "filter": filter,
             "limit": limit,

@@ -260,7 +260,7 @@ async def access_log_resolver(
         session,
         info.context.settings,
         "resolve_accesslog",
-        "AccessLog",
+        AccessLogModel.ACCESS_LOG,
         {
             "limit": limit,
             "cursor": cursor,

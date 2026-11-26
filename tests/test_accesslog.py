@@ -91,9 +91,55 @@ async def test_access_log_database(empty_db: AsyncSession) -> None:
     await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
-    access_log(empty_db, Settings(), "test_accesslog", "AccessLog", {}, [uuid])
+    access_log(
+        empty_db,
+        Settings(),
+        "test_accesslog",
+        AccessLogModel.ACCESS_LOG,
+        {},
+        [uuid],
+    )
 
     await assert_one_access_log_entry(empty_db, "AccessLog", "test_accesslog", [uuid])
+
+
+@pytest.mark.integration_test
+@pytest.mark.envvar({"ACCESS_LOG_ENABLE": "True"})
+@pytest.mark.usefixtures("empty_db")
+@pytest.mark.parametrize(
+    "query,model",
+    [
+        ("query { registrations { objects { uuid } } }", "REGISTRATION"),
+        ("query { itsystems { objects { uuid } } }", "IT_SYSTEM"),
+    ],
+)
+async def test_access_log_reads_the_model_it_logged(
+    graphapi_post: GraphAPIPost,
+    create_itsystem: Callable[[dict[str, Any]], UUID],
+    query: str,
+    model: str,
+) -> None:
+    """Every read is logged as a model which the access log can read back."""
+    itsystem = create_itsystem(
+        {"user_key": "AD", "name": "AD", "validity": {"from": "2000-01-01"}}
+    )
+
+    response = graphapi_post(query)
+    assert response.errors is None
+
+    response = graphapi_post(
+        """
+        query ReadAccessLog($uuid: UUID!) {
+          access_log(filter: {uuids: [$uuid]}) {
+            objects { model }
+          }
+        }
+        """,
+        {"uuid": str(itsystem)},
+    )
+    assert response.errors is None
+    assert response.data
+    assert {"model": model} in response.data["access_log"]["objects"]
 
 
 @pytest.mark.integration_test
@@ -262,7 +308,7 @@ async def test_access_log_filters(
                     session,
                     access_log_settings,
                     access_event["operation"],
-                    access_event["class_name"],
+                    AccessLogModel(access_event["class_name"]),
                     {},
                     access_event["uuids"],
                 )
@@ -447,7 +493,14 @@ async def test_access_log_disabled(empty_db: AsyncSession) -> None:
     await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
-    access_log(empty_db, Settings(), "test_access_log", "AccessLog", {}, [uuid])
+    access_log(
+        empty_db,
+        Settings(),
+        "test_access_log",
+        AccessLogModel.ACCESS_LOG,
+        {},
+        [uuid],
+    )
     await assert_empty_access_log_tables(empty_db)
 
 
@@ -459,7 +512,14 @@ async def test_access_log_enabled(empty_db: AsyncSession) -> None:
     await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
-    access_log(empty_db, Settings(), "test_access_log", "AccessLog", {}, [uuid])
+    access_log(
+        empty_db,
+        Settings(),
+        "test_access_log",
+        AccessLogModel.ACCESS_LOG,
+        {},
+        [uuid],
+    )
     await assert_one_access_log_entry(empty_db, "AccessLog", "test_access_log", [uuid])
 
 
@@ -547,7 +607,14 @@ async def test_access_log_disabled_for_user(empty_db: AsyncSession) -> None:
     await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
-    access_log(empty_db, Settings(), "test_access_log", "AccessLog", {}, [uuid])
+    access_log(
+        empty_db,
+        Settings(),
+        "test_access_log",
+        AccessLogModel.ACCESS_LOG,
+        {},
+        [uuid],
+    )
     await assert_empty_access_log_tables(empty_db)
 
 
@@ -561,7 +628,14 @@ async def test_access_log_enabled_for_user(empty_db: AsyncSession) -> None:
     await assert_empty_access_log_tables(empty_db)
 
     uuid = uuid4()
-    access_log(empty_db, Settings(), "test_access_log", "AccessLog", {}, [uuid])
+    access_log(
+        empty_db,
+        Settings(),
+        "test_access_log",
+        AccessLogModel.ACCESS_LOG,
+        {},
+        [uuid],
+    )
     await assert_one_access_log_entry(empty_db, "AccessLog", "test_access_log", [uuid])
 
 

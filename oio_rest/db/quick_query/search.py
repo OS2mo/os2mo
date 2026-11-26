@@ -9,6 +9,7 @@ from more_itertools import flatten
 from psycopg import sql
 from sqlalchemy import text
 
+from mora.access_log import AccessLogModel
 from mora.access_log import access_log
 from mora.config import get_settings
 from mora.db import get_session
@@ -534,7 +535,7 @@ async def quick_search(
         session,
         get_settings(),
         "quick_search",
-        org_class_name,
+        AccessLogModel.from_lora(org_class_name),
         access_log_arguments,
         uuids,
     )

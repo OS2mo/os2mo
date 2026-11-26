@@ -1140,7 +1140,7 @@ class TestDBObjectFunctions:
 
         # Act
         actual_result = await db.list_objects(
-            "classname",
+            "Facet",
             ["uuid"],
             "virkning_fra",
             "virkning_til",
@@ -1327,7 +1327,7 @@ class TestPGErrors:
         self, monkeypatch: MonkeyPatch
     ) -> None:
         # Arrange
-        classname = "classname"
+        classname = "Facet"
         uuid = "1c3236a1-9384-4730-82ab-5443e95bcead"
 
         mock = mock_sql_session(monkeypatch)
@@ -1377,7 +1377,7 @@ class TestPGErrors:
         self, monkeypatch: MonkeyPatch
     ) -> None:
         # Arrange
-        class_name = "class"
+        class_name = "Klasse"
         uuid = "61ae604b-e7fb-4892-a09a-55e5f6822435"
         exception = TestPGErrors.FakeException()
         exception.pgcode = "12345"

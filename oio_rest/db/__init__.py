@@ -23,6 +23,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import StatementError
 
 from mora import util
+from mora.access_log import AccessLogModel
 from mora.access_log import access_log
 from mora.auth.middleware import get_authenticated_user
 from mora.config import get_settings
@@ -265,7 +266,7 @@ async def object_exists(class_name: str, uuid: str) -> bool:
             session,
             get_settings(),
             "object_exists",
-            class_name,
+            AccessLogModel.from_lora(class_name),
             arguments,
             [UUID(uuid)],
         )
@@ -491,7 +492,7 @@ async def list_objects(
         session,
         get_settings(),
         "list_objects",
-        class_name,
+        AccessLogModel.from_lora(class_name),
         arguments,
         list(map(UUID, uuids)),
     )
@@ -807,7 +808,7 @@ async def search_objects(
         session,
         get_settings(),
         "search_objects",
-        class_name,
+        AccessLogModel.from_lora(class_name),
         arguments,
         list(map(UUID, uuids)),
     )
