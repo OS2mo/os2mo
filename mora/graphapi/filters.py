@@ -414,6 +414,12 @@ class EngagementFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    not_: EngagementFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Engagements matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="Facet filter.")
 class FacetFilter(BaseFilter):
