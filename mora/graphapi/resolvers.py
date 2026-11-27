@@ -803,6 +803,20 @@ def address_predicate(
             )
         )
 
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(OrganisationFunktionRegistrering.organisationfunktion_id)
+            .where(address_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(
+                excluded.c.organisationfunktion_id
+                == OrganisationFunktionRegistrering.organisationfunktion_id
+            )
+        )
+
     return and_(*predicates)
 
 

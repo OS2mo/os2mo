@@ -152,6 +152,12 @@ class AddressFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         description="Visibility filter limiting which entries are returned.",
     )
 
+    not_: AddressFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Addresses matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="Association filter.")
 class AssociationFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
