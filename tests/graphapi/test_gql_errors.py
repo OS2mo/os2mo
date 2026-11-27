@@ -113,16 +113,16 @@ async def test_handle_gql_error_with_original_error(
     """Errors raised by resolvers carry an original_error which is unwrapped."""
 
     query = """
-        mutation TriggerResolverError($input: RelatedUnitsUpdateInput!) {
-        related_units_update(input: $input) { uuid }
+        mutation TriggerResolverError($input: RelatedUnitCreateInput!) {
+        related_unit_create(input: $input) { uuid }
         }
     """
 
-    origin = create_org_unit("origin")
+    org_unit = create_org_unit("org_unit")
     variables = {
         "input": {
-            "origin": str(origin),
-            "destination": [str(uuid4())],
+            "org_unit": str(org_unit),
+            "related_org_unit": str(uuid4()),
             "validity": {"from": "2017-01-01T00:00:00+01:00"},
         }
     }

@@ -5,13 +5,56 @@ from asyncio import gather
 from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
+from more_itertools import one
 
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from ..service.related_unit import RelatedUnitRequestHandler
+from ..service.related_unit import tag_related_units
+from .models import RelatedUnitCreate
 from .models import RelatedUnitsUpdate
+from .models import RelatedUnitTerminate
+from .models import RelatedUnitUpdate
+
+
+async def create_related_unit(input: RelatedUnitCreate) -> UUID:
+    input_dict = jsonable_encoder(input.to_handler_dict())
+
+    request = await RelatedUnitRequestHandler.construct(
+        input_dict, mapping.RequestType.CREATE
+    )
+    uuid = await request.submit()
+
+    return UUID(uuid)
+
+
+async def update_related_unit(input: RelatedUnitUpdate) -> UUID:
+    input_dict = jsonable_encoder(input.to_handler_dict())
+
+    req = {
+        mapping.TYPE: mapping.RELATED_UNIT,
+        mapping.UUID: str(input.uuid),
+        mapping.DATA: input_dict,
+    }
+
+    request = await RelatedUnitRequestHandler.construct(req, mapping.RequestType.EDIT)
+    uuid = await request.submit()
+
+    return UUID(uuid)
+
+
+async def terminate_related_unit(input: RelatedUnitTerminate) -> UUID:
+    input_dict = jsonable_encoder(input.to_handler_dict())
+
+    request = await RelatedUnitRequestHandler.construct(
+        input_dict, mapping.RequestType.TERMINATE
+    )
+    await request.submit()
+
+    return input.uuid
 
 
 async def update_related_units(input: RelatedUnitsUpdate) -> UUID:
@@ -111,6 +154,13 @@ async def _map_org_units(origin: UUID | str, req: dict) -> dict[str, list[UUID |
         for destid in destinations
         if destid not in preexisting
     ]
+    for creation in creations:
+        destination = one(
+            u
+            for u in mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuids(creation)
+            if u != origin
+        )
+        tag_related_units(creation, origin, destination)
 
     deleted = await gather(
         *[

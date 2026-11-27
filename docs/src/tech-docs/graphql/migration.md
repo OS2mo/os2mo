@@ -9,6 +9,84 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 31
+
+GraphQL version 31 replaces the symmetric related units with directed ones.
+
+Prior to GraphQL version 31 a related unit was an unordered pair of
+organisation units, read through `org_units`, `org_units_response` or
+`org_unit_uuids`, and written through `related_units_update`, which sets every
+relation of an `origin` unit from a given date, terminating any other relation.
+
+In GraphQL version 31 a related unit relates its `org_unit` to its
+`related_org_unit`, and each relation is created, updated and terminated by
+itself:
+
+* `org_units`, `org_units_response` and `org_unit_uuids` are replaced by
+  `org_unit_response` and `related_org_unit_response`.
+* `related_units_update` is replaced by `related_unit_create`,
+  `related_unit_update` and `related_unit_terminate`.
+
+The `origin` of relations created through `related_units_update` is read as
+the `org_unit`. Relations from before OS2mo recorded the direction have their
+units assigned to `org_unit` and `related_org_unit` arbitrarily.
+
+A pair of units may only be related once at a time, in either direction.
+
+The units of a related unit cannot be changed, as a relation between other
+units is another relation. Terminate the relation and create another instead.
+
+To migrate, read the units of a related unit as:
+
+```graphql
+query ReadRelatedUnits {
+  related_units {
+    objects {
+      current {
+        org_unit_response { uuid }
+        related_org_unit_response { uuid }
+      }
+    }
+  }
+}
+```
+
+And replace:
+
+```graphql
+mutation RelateUnits {
+  related_units_update(
+    input: {
+      origin: "2874e1dc-85e6-4269-823a-e1125484dfd3"
+      destination: ["9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"]
+      validity: {from: "2020-01-01"}
+    }
+  ) {
+    uuid
+  }
+}
+```
+
+With:
+
+```graphql
+mutation RelateUnits {
+  related_unit_create(
+    input: {
+      org_unit: "2874e1dc-85e6-4269-823a-e1125484dfd3"
+      related_org_unit: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+      validity: {from: "2020-01-01"}
+    }
+  ) {
+    uuid
+  }
+}
+```
+
+Relations which `related_units_update` would have terminated, by leaving their
+units out of `destination`, must instead be terminated by `related_unit_terminate`.
+
+
 ## Version 30
 
 GraphQL version 30 introduces a very minor breaking change to the `itusers`

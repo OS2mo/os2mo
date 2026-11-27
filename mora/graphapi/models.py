@@ -1391,6 +1391,65 @@ class RelatedUnitsUpdate(UUIDBase):
         }
 
 
+class RelatedUnitCreate(UUIDBase):
+    """Model representing a related unit creation."""
+
+    org_unit: UUID = Field(description="UUID of the first/origin organisation unit.")
+    related_org_unit: UUID = Field(
+        description="UUID of the second/destination organisation unit."
+    )
+    user_key: str | None = Field(
+        None,
+        description="User key for the relation. Defaults to '{unit1_bvn} <-> {unit2_bvn}'.",
+    )
+    validity: RAValidity = Field(description="Validity range for the related unit.")
+
+    def to_handler_dict(self) -> dict:
+        return {
+            "uuid": self.uuid,
+            "user_key": self.user_key,
+            "org_unit": gen_uuid(self.org_unit),
+            "related_org_unit": gen_uuid(self.related_org_unit),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
+
+
+class RelatedUnitUpdate(UUIDBase):
+    """Model representing a related unit update.
+
+    The units of a related unit cannot be changed, as a relation between other
+    units is another relation: terminate it and create the other instead.
+    """
+
+    uuid: UUID = Field(description="UUID of the related unit to update.")
+    user_key: str | None = Field(None, description="User key for the relation.")
+    validity: RAValidity = Field(description="Validity range for the related unit.")
+
+    def to_handler_dict(self) -> dict:
+        data_dict = {
+            "uuid": self.uuid,
+            "user_key": self.user_key,
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
+        return {k: v for k, v in data_dict.items() if v is not None}
+
+
+class RelatedUnitTerminate(ValidityTerminate):
+    """Model representing a related unit termination."""
+
+    uuid: UUID = Field(description="UUID for the related unit we want to terminate.")
+
+
 # Rolebindings
 # ------------
 

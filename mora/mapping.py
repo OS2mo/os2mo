@@ -309,6 +309,35 @@ ASSOCIATED_ORG_UNIT_FIELD = FieldTuple(
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
+# The two units of a related unit are told apart by the relation's objekttype,
+# as LoRa does not preserve the order of relations
+RELATED_UNIT_ORG_UNIT_OBJECTTYPE = "org_unit"
+RELATED_UNIT_RELATED_ORG_UNIT_OBJECTTYPE = "related_org_unit"
+
+
+def get_related_unit_uuids(obj: dict) -> tuple[str | None, str | None]:
+    """Get the `(org_unit, related_org_unit)` UUIDs of a related unit.
+
+    Relations written before the units were tagged by objekttype carry no
+    roles; those are assigned in the order LoRa returns them, which is
+    arbitrary.
+    """
+    relations = [
+        r for r in ASSOCIATED_ORG_UNIT_FIELD(obj) if r.get("uuid") not in (None, "")
+    ]
+    tagged = {r.get("objekttype"): r["uuid"] for r in relations}
+    org_unit = tagged.get(RELATED_UNIT_ORG_UNIT_OBJECTTYPE)
+    related_org_unit = tagged.get(RELATED_UNIT_RELATED_ORG_UNIT_OBJECTTYPE)
+    untagged = iter(
+        r["uuid"] for r in relations if r["uuid"] not in (org_unit, related_org_unit)
+    )
+    if org_unit is None:
+        org_unit = next(untagged, None)
+    if related_org_unit is None:
+        related_org_unit = next(untagged, None)
+    return org_unit, related_org_unit
+
+
 ASSOCIATED_FUNCTION_FIELD = FieldTuple(
     path=("relationer", "tilknyttedefunktioner"),
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,

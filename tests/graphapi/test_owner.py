@@ -531,6 +531,8 @@ async def test_owner_related_units_is_gated_on_the_origin_unit(
                     }
                 }
             ),
+            # `related_units_update` only exists until GraphQL version 30
+            url="/graphql/v30",
         )
 
     # A stranger owns no origin to work from

@@ -84,6 +84,7 @@ from .facets import create_facet
 from .facets import delete_facet
 from .facets import terminate_facet
 from .facets import update_facet
+from .fields import Metadata
 from .filters import AddressFilter
 from .filters import AssociationFilter
 from .filters import ClassFilter
@@ -151,7 +152,10 @@ from .inputs import OwnerCreateInput
 from .inputs import OwnerTerminateInput
 from .inputs import OwnerUpdateInput
 from .inputs import PolicyStateInput
+from .inputs import RelatedUnitCreateInput
 from .inputs import RelatedUnitsUpdateInput
+from .inputs import RelatedUnitTerminateInput
+from .inputs import RelatedUnitUpdateInput
 from .inputs import RoleBindingCreateInput
 from .inputs import RolebindingRuleCreateInput
 from .inputs import RolebindingRuleDeleteInput
@@ -196,6 +200,9 @@ from .paged import LimitType
 from .paged import Paged
 from .policy_api import Policy
 from .policy_api import load_policies
+from .related_units import create_related_unit
+from .related_units import terminate_related_unit
+from .related_units import update_related_unit
 from .related_units import update_related_units
 from .resolvers import address_resolver
 from .resolvers import association_resolver
@@ -218,6 +225,7 @@ from .role import terminate_rolebinding
 from .role import update_rolebinding
 from .rolebinding_rules import RolebindingRule
 from .rolebinding_rules import load_rules
+from .version import Version as GraphQLVersion
 
 logger = logging.getLogger(__name__)
 
@@ -1303,7 +1311,41 @@ class Mutation:
     # -------------
 
     @strawberry.mutation(
+        description="Creates a related unit relation.",
+        metadata=Metadata(version=lambda v: v >= GraphQLVersion.VERSION_31),
+    )
+    async def related_unit_create(
+        self, input: RelatedUnitCreateInput
+    ) -> Response[RelatedUnit]:
+        return uuid2response(
+            await create_related_unit(input.to_pydantic()), RelatedUnitRead
+        )
+
+    @strawberry.mutation(
+        description="Updates a related unit relation.",
+        metadata=Metadata(version=lambda v: v >= GraphQLVersion.VERSION_31),
+    )
+    async def related_unit_update(
+        self, input: RelatedUnitUpdateInput
+    ) -> Response[RelatedUnit]:
+        return uuid2response(
+            await update_related_unit(input.to_pydantic()), RelatedUnitRead
+        )
+
+    @strawberry.mutation(
+        description="Terminates a related unit relation.",
+        metadata=Metadata(version=lambda v: v >= GraphQLVersion.VERSION_31),
+    )
+    async def related_unit_terminate(
+        self, input: RelatedUnitTerminateInput
+    ) -> Response[RelatedUnit]:
+        return uuid2response(
+            await terminate_related_unit(input.to_pydantic()), RelatedUnitRead
+        )
+
+    @strawberry.mutation(
         description="Updates relations for an org_unit.",
+        metadata=Metadata(version=lambda v: v <= GraphQLVersion.VERSION_30),
     )
     async def related_units_update(
         self, input: RelatedUnitsUpdateInput

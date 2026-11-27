@@ -99,6 +99,10 @@ class ErrorCodes(Enum):
         400,
         "Employee has the same IT user more than once",
     )
+    V_DUPLICATED_RELATED_UNIT = (
+        400,
+        "The organisation units are already related.",
+    )
     V_CANNOT_SUBSTITUTE_SELF = 400, "Cannot substitute for oneself"
     V_INVALID_ADDRESS_DAR = 400, "Invalid address"
     V_INVALID_ADDRESS_EAN = 400, "Invalid EAN"

@@ -92,29 +92,29 @@ def test_related_unit_not_filter(
     b1 = create_org_unit("b1")
     past = create_org_unit("past")
 
-    def relate(origin: UUID, destination: list[UUID], from_date: str) -> None:
+    def relate(org_unit: UUID, related_org_unit: UUID, to_date: str | None) -> None:
         response = graphapi_post(
             """
-            mutation UpdateRelatedUnits($input: RelatedUnitsUpdateInput!) {
-                related_units_update(input: $input) {
+            mutation CreateRelatedUnit($input: RelatedUnitCreateInput!) {
+                related_unit_create(input: $input) {
                     uuid
                 }
             }
             """,
             {
                 "input": {
-                    "origin": str(origin),
-                    "destination": [str(d) for d in destination],
-                    "validity": {"from": from_date},
+                    "org_unit": str(org_unit),
+                    "related_org_unit": str(related_org_unit),
+                    "validity": {"from": "2020-01-01", "to": to_date},
                 }
             },
         )
         assert response.errors is None
 
-    relate(ou_a, [a1, a2], "2020-01-01")
-    relate(ou_b, [b1, past], "2020-01-01")
-    # Related units cannot be created with an end date, so remove it
-    relate(ou_b, [b1], "2021-01-01")
+    relate(ou_a, a1, None)
+    relate(ou_a, a2, None)
+    relate(ou_b, b1, None)
+    relate(ou_b, past, "2020-12-31")
 
     response = graphapi_post(
         """

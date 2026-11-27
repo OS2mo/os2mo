@@ -9,7 +9,9 @@ import strawberry
 
 from mora.graphapi.gmodels.mo import OrganisationUnitRead
 from mora.graphapi.gmodels.mo.details import RelatedUnitRead
+from mora.graphapi.version import Version as GraphQLVersion
 
+from ..fields import Metadata
 from ..lazy import LazyOrganisationUnit
 from ..paged import Paged
 from ..resolvers import organisation_unit_resolver
@@ -66,6 +68,30 @@ class RelatedUnit:
         """Implemented for backwards compatability."""
         return root.type_
 
+    org_unit_response: Response[LazyOrganisationUnit] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response(
+            model=OrganisationUnitRead, uuid=root.org_unit_uuid
+        ),
+        description=dedent(
+            """
+            The organisation unit which is related to `related_org_unit_response`.
+            """
+        ),
+        metadata=Metadata(version=lambda v: v >= GraphQLVersion.VERSION_31),
+    )
+
+    related_org_unit_response: Response[LazyOrganisationUnit] = strawberry.field(  # type: ignore
+        resolver=lambda root: Response(
+            model=OrganisationUnitRead, uuid=root.related_org_unit_uuid
+        ),
+        description=dedent(
+            """
+            The organisation unit which `org_unit_response` is related to.
+            """
+        ),
+        metadata=Metadata(version=lambda v: v >= GraphQLVersion.VERSION_31),
+    )
+
     org_units_response: Paged[Response[LazyOrganisationUnit]] = strawberry.field(
         resolver=to_paged_response(OrganisationUnitRead)(
             seed_resolver(
@@ -86,6 +112,7 @@ class RelatedUnit:
             The result list should always be of length 2, corresponding to the elements of the bijection.
             """
         ),
+        metadata=Metadata(version=lambda v: v <= GraphQLVersion.VERSION_30),
     )
 
     org_units: list[LazyOrganisationUnit] = strawberry.field(
@@ -109,11 +136,13 @@ class RelatedUnit:
             """
         ),
         deprecation_reason="Use 'org_units_response' instead. Will be removed in a future version of OS2mo.",
+        metadata=Metadata(version=lambda v: v <= GraphQLVersion.VERSION_30),
     )
 
     @strawberry.field(
         description="UUIDs of the related organisation units.",
         deprecation_reason=gen_uuid_field_deprecation("org_units"),
+        metadata=Metadata(version=lambda v: v <= GraphQLVersion.VERSION_30),
     )
     async def org_unit_uuids(self, root: RelatedUnitRead) -> list[UUID]:
         return root.org_unit_uuids

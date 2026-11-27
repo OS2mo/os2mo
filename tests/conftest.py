@@ -955,6 +955,7 @@ def create_org_unit(
         user_key: str,
         parent: UUID | None = None,
         validity: dict[str, Any] | None = None,
+        uuid: UUID | None = None,
     ) -> UUID:
         mutate_query = """
             mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
@@ -967,6 +968,7 @@ def create_org_unit(
             query=mutate_query,
             variables={
                 "input": {
+                    "uuid": str(uuid) if uuid else None,
                     "name": user_key,
                     "user_key": user_key,
                     "parent": str(parent) if parent else None,

@@ -14,6 +14,12 @@ class RelatedUnitRead(MOBase):
     type_: str = Field("related_unit", alias="type", description="The object type.")
     validity: Validity = Field(description="Validity of the relatedUnit object.")
 
+    org_unit_uuid: UUID = Field(
+        description="UUID of the first/origin organisation unit."
+    )
+    related_org_unit_uuid: UUID = Field(
+        description="UUID of the second/destination organisation unit."
+    )
     org_unit_uuids: list[UUID] = Field(
         description="UUIDs of the related organisation units."
     )

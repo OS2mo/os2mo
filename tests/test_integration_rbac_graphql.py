@@ -664,6 +664,8 @@ def test_related(
         }
         """,
         variables=dict(input=input),
+        # `related_units_update` only exists until GraphQL version 30
+        url="/graphql/v30",
     )
     if success:
         assert r2.errors is None

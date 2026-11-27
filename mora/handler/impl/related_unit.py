@@ -24,11 +24,14 @@ class RoleReader(reading.OrgFunkReadingHandler):
     async def _get_mo_object_from_effect(
         cls, effect, start, end, funcid, flat: bool = False
     ) -> dict[str, Awaitable | Any]:
-        org_units_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuids(effect)
+        org_units_uuid = list(mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuids(effect))
+        org_unit_uuid, related_org_unit_uuid = mapping.get_related_unit_uuids(effect)
 
         base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
 
         return {
             **base_obj,
+            "org_unit_uuid": org_unit_uuid,
+            "related_org_unit_uuid": related_org_unit_uuid,
             "org_unit_uuids": org_units_uuid,
         }

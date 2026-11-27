@@ -16,6 +16,7 @@ from . import manager
 from . import org
 from . import orgunit
 from . import owner
+from . import related_unit
 from . import role
 from . import shimmed
 
@@ -35,6 +36,7 @@ __all__ = [
     "org",
     "orgunit",
     "owner",
+    "related_unit",
     "role",
     "shimmed",
 ]
