@@ -1133,6 +1133,12 @@ class RoleBindingFilter(BaseFilter, OrganisationUnitFiltered):
         ),
     )
 
+    not_: RoleBindingFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Rolebindings matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="Class owner filter")
 class ClassOwnerFilter(OrganisationUnitFilter):
