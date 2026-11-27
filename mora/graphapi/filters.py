@@ -152,6 +152,12 @@ class AddressFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         description="Visibility filter limiting which entries are returned.",
     )
 
+    not_: AddressFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Addresses matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="Association filter.")
 class AssociationFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
@@ -194,6 +200,12 @@ class AssociationFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
             `?it=1`
             """
         ),
+    )
+
+    not_: AssociationFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Associations matching the nested filter are excluded from the result.",
     )
 
 
@@ -278,6 +290,12 @@ class ClassFilter(BaseFilter):
         description=gen_filter_string("Scope", "scope"),
     )
 
+    not_: ClassFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Classes matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="Configuration filter.")
 class ConfigurationFilter:
@@ -354,6 +372,12 @@ class EmployeeFilter(BaseFilter):
         ),
     )
 
+    not_: EmployeeFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Employees matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="Engagement filter.")
 class EngagementFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
@@ -414,6 +438,12 @@ class EngagementFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    not_: EngagementFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Engagements matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="Facet filter.")
 class FacetFilter(BaseFilter):
@@ -443,6 +473,12 @@ class FacetFilter(BaseFilter):
         default=None,
         description=gen_filter_string("Parent user-key", "parent_user_keys"),
         deprecation_reason="Replaced by the 'parent' filter",
+    )
+
+    not_: FacetFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Facets matching the nested filter are excluded from the result.",
     )
 
 
@@ -481,6 +517,12 @@ class ITSystemFilter(BaseFilter):
             Registration filter limiting which entries are returned.
             """
         ),
+    )
+
+    not_: ITSystemFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="IT systems matching the nested filter are excluded from the result.",
     )
 
 
@@ -568,6 +610,12 @@ class ITUserFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    not_: ITUserFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="IT users matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="KLE filter.")
 class KLEFilter(BaseFilter, OrganisationUnitFiltered):
@@ -580,6 +628,12 @@ class KLEFilter(BaseFilter, OrganisationUnitFiltered):
         ),
     )
 
+    not_: KLEFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="KLEs matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="Leave filter.")
 class LeaveFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
@@ -590,6 +644,12 @@ class LeaveFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
             Registration filter limiting which entries are returned.
             """
         ),
+    )
+
+    not_: LeaveFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Leaves matching the nested filter are excluded from the result.",
     )
 
 
@@ -645,6 +705,12 @@ class ManagerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
             Set to `null` to only return managers without a primary class.
             """
         ),
+    )
+
+    not_: ManagerFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Managers matching the nested filter are excluded from the result.",
     )
 
 
@@ -883,6 +949,12 @@ class OrganisationUnitFilter(BaseFilter):
         description="Owner filter limiting which entries are returned.",
     )
 
+    not_: OrganisationUnitFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Organisation units matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="Owner filter.")
 class OwnerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
@@ -893,6 +965,12 @@ class OwnerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
             Owner filter limiting which entries are returned.
             """
         ),
+    )
+
+    not_: OwnerFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Owners matching the nested filter are excluded from the result.",
     )
 
 
@@ -1021,6 +1099,12 @@ class RelatedUnitFilter(BaseFilter, OrganisationUnitFiltered):
     # TODO: registration filter
     pass
 
+    not_: RelatedUnitFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Related units matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="Rolebinding filter.")
 class RoleBindingFilter(BaseFilter, OrganisationUnitFiltered):
@@ -1047,6 +1131,12 @@ class RoleBindingFilter(BaseFilter, OrganisationUnitFiltered):
             Role filter limiting which entries are returned.
             """
         ),
+    )
+
+    not_: RoleBindingFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Rolebindings matching the nested filter are excluded from the result.",
     )
 
 

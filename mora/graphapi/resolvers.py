@@ -360,6 +360,17 @@ def facet_predicate(
             )
         )
 
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(FacetRegistrering.facet_id)
+            .where(facet_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(excluded.c.facet_id == FacetRegistrering.facet_id)
+        )
+
     return and_(*predicates)
 
 
@@ -554,6 +565,17 @@ def class_predicate(
             predicates.append(or_(matched_owner, no_owner))
         else:
             predicates.append(matched_owner)
+
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(KlasseRegistrering.klasse_id)
+            .where(class_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(excluded.c.klasse_id == KlasseRegistrering.klasse_id)
+        )
 
     return and_(*predicates)
 
@@ -803,6 +825,20 @@ def address_predicate(
             )
         )
 
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(OrganisationFunktionRegistrering.organisationfunktion_id)
+            .where(address_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(
+                excluded.c.organisationfunktion_id
+                == OrganisationFunktionRegistrering.organisationfunktion_id
+            )
+        )
+
     return and_(*predicates)
 
 
@@ -1011,6 +1047,20 @@ def association_predicate(
         else:
             predicates.append(~has_it_relation)
 
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(OrganisationFunktionRegistrering.organisationfunktion_id)
+            .where(association_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(
+                excluded.c.organisationfunktion_id
+                == OrganisationFunktionRegistrering.organisationfunktion_id
+            )
+        )
+
     return and_(*predicates)
 
 
@@ -1197,6 +1247,17 @@ def employee_predicate(
             predicates.append(~employee_has_engagement)
         else:
             predicates.append(employee_has_engagement)
+
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(BrugerRegistrering.bruger_id)
+            .where(employee_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(excluded.c.bruger_id == BrugerRegistrering.bruger_id)
+        )
 
     return and_(*predicates)
 
@@ -1479,6 +1540,20 @@ def engagement_predicate(
                     ),
                 )
             )
+
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(OrganisationFunktionRegistrering.organisationfunktion_id)
+            .where(engagement_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(
+                excluded.c.organisationfunktion_id
+                == OrganisationFunktionRegistrering.organisationfunktion_id
+            )
+        )
 
     return and_(*predicates)
 
@@ -1839,6 +1914,20 @@ def manager_predicate(
         else:
             predicates.append(manager_has_primary)
 
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(OrganisationFunktionRegistrering.organisationfunktion_id)
+            .where(manager_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(
+                excluded.c.organisationfunktion_id
+                == OrganisationFunktionRegistrering.organisationfunktion_id
+            )
+        )
+
     return and_(*predicates)
 
 
@@ -2101,6 +2190,20 @@ def owner_predicate(
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
+            )
+        )
+
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(OrganisationFunktionRegistrering.organisationfunktion_id)
+            .where(owner_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(
+                excluded.c.organisationfunktion_id
+                == OrganisationFunktionRegistrering.organisationfunktion_id
             )
         )
 
@@ -2512,6 +2615,20 @@ def organisation_unit_predicate(
             )
         )
 
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(OrganisationEnhedRegistrering.organisationenhed_id)
+            .where(organisation_unit_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(
+                excluded.c.organisationenhed_id
+                == OrganisationEnhedRegistrering.organisationenhed_id
+            )
+        )
+
     return and_(*predicates)
 
 
@@ -2647,6 +2764,17 @@ def it_system_predicate(
                     _get_active_period_clause(ITSystemAttrEgenskaber, filter),
                 )
             )
+        )
+
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(ITSystemRegistrering.itsystem_id)
+            .where(it_system_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(excluded.c.itsystem_id == ITSystemRegistrering.itsystem_id)
         )
 
     return and_(*predicates)
@@ -2956,6 +3084,20 @@ def it_user_predicate(
         else:
             predicates.append(ituser_has_primary)
 
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(OrganisationFunktionRegistrering.organisationfunktion_id)
+            .where(it_user_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(
+                excluded.c.organisationfunktion_id
+                == OrganisationFunktionRegistrering.organisationfunktion_id
+            )
+        )
+
     return and_(*predicates)
 
 
@@ -3096,6 +3238,20 @@ def kle_predicate(
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
+            )
+        )
+
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(OrganisationFunktionRegistrering.organisationfunktion_id)
+            .where(kle_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(
+                excluded.c.organisationfunktion_id
+                == OrganisationFunktionRegistrering.organisationfunktion_id
             )
         )
 
@@ -3269,6 +3425,20 @@ def leave_predicate(
             )
         )
 
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(OrganisationFunktionRegistrering.organisationfunktion_id)
+            .where(leave_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(
+                excluded.c.organisationfunktion_id
+                == OrganisationFunktionRegistrering.organisationfunktion_id
+            )
+        )
+
     return and_(*predicates)
 
 
@@ -3435,6 +3605,20 @@ def related_unit_predicate(
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
+            )
+        )
+
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(OrganisationFunktionRegistrering.organisationfunktion_id)
+            .where(related_unit_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(
+                excluded.c.organisationfunktion_id
+                == OrganisationFunktionRegistrering.organisationfunktion_id
             )
         )
 
@@ -3624,6 +3808,20 @@ def rolebinding_predicate(
                     ),
                     _get_active_period_clause(OrganisationFunktionRelation, filter),
                 )
+            )
+        )
+
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(OrganisationFunktionRegistrering.organisationfunktion_id)
+            .where(rolebinding_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(
+                excluded.c.organisationfunktion_id
+                == OrganisationFunktionRegistrering.organisationfunktion_id
             )
         )
 
