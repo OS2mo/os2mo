@@ -967,6 +967,12 @@ class OwnerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    not_: OwnerFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Owners matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="Registration filter.")
 class RegistrationFilter:
