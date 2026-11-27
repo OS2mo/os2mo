@@ -2724,6 +2724,17 @@ def it_system_predicate(
             )
         )
 
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(ITSystemRegistrering.itsystem_id)
+            .where(it_system_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(excluded.c.itsystem_id == ITSystemRegistrering.itsystem_id)
+        )
+
     return and_(*predicates)
 
 

@@ -519,6 +519,12 @@ class ITSystemFilter(BaseFilter):
         ),
     )
 
+    not_: ITSystemFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="IT systems matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="IT user filter.")
 class ITUserFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
