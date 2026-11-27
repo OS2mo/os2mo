@@ -372,6 +372,12 @@ class EmployeeFilter(BaseFilter):
         ),
     )
 
+    not_: EmployeeFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Employees matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="Engagement filter.")
 class EngagementFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):

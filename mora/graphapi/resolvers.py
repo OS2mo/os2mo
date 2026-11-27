@@ -1237,6 +1237,17 @@ def employee_predicate(
         else:
             predicates.append(employee_has_engagement)
 
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(BrugerRegistrering.bruger_id)
+            .where(employee_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(excluded.c.bruger_id == BrugerRegistrering.bruger_id)
+        )
+
     return and_(*predicates)
 
 
