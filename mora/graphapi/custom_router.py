@@ -94,8 +94,24 @@ HTML = """
       import { GraphiQL, HISTORY_PLUGIN } from "graphiql";
       import { createGraphiQLFetcher } from "@graphiql/toolkit";
       import { explorerPlugin } from "@graphiql/plugin-explorer";
-      import "graphiql/setup-workers/esm.sh";
       import Keycloak from "keycloak-js";
+
+      // TODO: This worker setup is a mess. Update to GraphiQL v6, which uses
+      // monaco-graphql 2.x, and go back to importing its setup-workers module.
+      import JsonWorker from "https://esm.sh/monaco-editor@0.52.2/esm/vs/language/json/json.worker.js?worker";
+      import GraphQLWorker from "https://esm.sh/monaco-graphql@1.7.4/esm/graphql.worker.js?worker&deps=monaco-editor@0.52.2";
+      import EditorWorker from "https://esm.sh/monaco-editor@0.52.2/esm/vs/editor/editor.worker.js?worker";
+      globalThis.MonacoEnvironment = {
+        getWorker(_workerId, label) {
+          switch (label) {
+            case "json":
+              return new JsonWorker();
+            case "graphql":
+              return new GraphQLWorker();
+          }
+          return new EditorWorker();
+        },
+      };
 
       const keycloak = new Keycloak({
         url: "__KEYCLOAK_URL__",
