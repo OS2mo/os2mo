@@ -475,6 +475,12 @@ class FacetFilter(BaseFilter):
         deprecation_reason="Replaced by the 'parent' filter",
     )
 
+    not_: FacetFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Facets matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="File filter.")
 class FileFilter:

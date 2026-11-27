@@ -360,6 +360,17 @@ def facet_predicate(
             )
         )
 
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(FacetRegistrering.facet_id)
+            .where(facet_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(excluded.c.facet_id == FacetRegistrering.facet_id)
+        )
+
     return and_(*predicates)
 
 
