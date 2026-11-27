@@ -202,6 +202,12 @@ class AssociationFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    not_: AssociationFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Associations matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="Class filter.")
 class ClassFilter(BaseFilter):
