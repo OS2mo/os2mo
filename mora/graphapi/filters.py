@@ -290,6 +290,12 @@ class ClassFilter(BaseFilter):
         description=gen_filter_string("Scope", "scope"),
     )
 
+    not_: ClassFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Classes matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="Configuration filter.")
 class ConfigurationFilter:

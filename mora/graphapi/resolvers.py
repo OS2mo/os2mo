@@ -555,6 +555,17 @@ def class_predicate(
         else:
             predicates.append(matched_owner)
 
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(KlasseRegistrering.klasse_id)
+            .where(class_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(excluded.c.klasse_id == KlasseRegistrering.klasse_id)
+        )
+
     return and_(*predicates)
 
 
