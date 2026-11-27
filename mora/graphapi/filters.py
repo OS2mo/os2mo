@@ -574,6 +574,12 @@ class ITUserFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    not_: ITUserFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="IT users matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="KLE filter.")
 class KLEFilter(BaseFilter, OrganisationUnitFiltered):
