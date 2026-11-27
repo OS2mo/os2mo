@@ -36,6 +36,10 @@ A pair of units may only be related once at a time, in either direction.
 The units of a related unit cannot be changed, as a relation between other
 units is another relation. Terminate the relation and create another instead.
 
+Owners may create, update and terminate a related unit when they own either of
+its units, directly or through an ancestor, as `related_units_update` allowed
+for whichever unit was its `origin`.
+
 To migrate, read the units of a related unit as:
 
 ```graphql

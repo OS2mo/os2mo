@@ -2312,3 +2312,133 @@ async def test_owner_bulk_rolebindings_require_every_unit_owned(
     # An empty batch yields no checks, so it is denied rather than
     # vacuously granted
     assert_denied(create())
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_owner_related_unit_create(
+    create_org_unit: Callable[..., UUID],
+    set_auth: SetAuth,
+    alice: UUID,
+    make_owner: Callable[..., None],
+    graphapi_post: GraphAPIPost,
+) -> None:
+    # Alice owns `owned` directly and `root`, an ancestor of `child`
+    owned = create_org_unit("owned")
+    root = create_org_unit("root")
+    child = create_org_unit("child", root)
+    foreign = create_org_unit("foreign")
+    also_foreign = create_org_unit("also_foreign")
+    make_owner(alice, org_unit=owned)
+    make_owner(alice, org_unit=root)
+
+    def relate(org_unit: UUID, related_org_unit: UUID) -> GQLResponse:
+        return graphapi_post(
+            """
+            mutation CreateRelatedUnit($input: RelatedUnitCreateInput!) {
+                related_unit_create(input: $input) { uuid }
+            }
+            """,
+            variables={
+                "input": {
+                    "org_unit": str(org_unit),
+                    "related_org_unit": str(related_org_unit),
+                    "validity": {"from": "2021-01-01"},
+                }
+            },
+        )
+
+    # A stranger owns neither unit
+    set_auth(role="owner", user_uuid=uuid4())
+    assert_denied(relate(owned, foreign))
+
+    set_auth(role="owner", user_uuid=alice)
+    # Neither unit is owned by Alice
+    assert_denied(relate(foreign, also_foreign))
+    # Owning either unit is enough, directly or through an ancestor
+    assert_granted(relate(owned, foreign))
+    assert_granted(relate(also_foreign, owned))
+    assert_granted(relate(child, also_foreign))
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("empty_db")
+async def test_owner_related_unit_update_and_terminate(
+    create_org_unit: Callable[..., UUID],
+    set_auth: SetAuth,
+    alice: UUID,
+    make_owner: Callable[..., None],
+    graphapi_post: GraphAPIPost,
+) -> None:
+    # Alice owns `owned` and `root`, an ancestor of `child`
+    owned = create_org_unit("owned")
+    root = create_org_unit("root")
+    child = create_org_unit("child", root)
+    foreign = create_org_unit("foreign")
+    also_foreign = create_org_unit("also_foreign")
+    make_owner(alice, org_unit=owned)
+    make_owner(alice, org_unit=root)
+
+    def create(org_unit: UUID, related_org_unit: UUID) -> str:
+        response = graphapi_post(
+            """
+            mutation CreateRelatedUnit($input: RelatedUnitCreateInput!) {
+                related_unit_create(input: $input) { uuid }
+            }
+            """,
+            variables={
+                "input": {
+                    "org_unit": str(org_unit),
+                    "related_org_unit": str(related_org_unit),
+                    "validity": {"from": "2021-01-01"},
+                }
+            },
+        )
+        assert response.errors is None
+        return response.data["related_unit_create"]["uuid"]
+
+    # Created as the admin, before the caller is switched
+    mine = create(foreign, owned)
+    mine_by_ancestor = create(child, also_foreign)
+    not_mine = create(foreign, also_foreign)
+
+    def update(uuid: str) -> GQLResponse:
+        return graphapi_post(
+            """
+            mutation UpdateRelatedUnit($input: RelatedUnitUpdateInput!) {
+                related_unit_update(input: $input) { uuid }
+            }
+            """,
+            variables={
+                "input": {
+                    "uuid": uuid,
+                    "user_key": "renamed",
+                    "validity": {"from": "2022-01-01"},
+                }
+            },
+        )
+
+    def terminate(uuid: str) -> GQLResponse:
+        return graphapi_post(
+            """
+            mutation TerminateRelatedUnit($input: RelatedUnitTerminateInput!) {
+                related_unit_terminate(input: $input) { uuid }
+            }
+            """,
+            variables={"input": {"uuid": uuid, "to": "2025-12-31"}},
+        )
+
+    # A stranger owns no unit of either relation
+    set_auth(role="owner", user_uuid=uuid4())
+    assert_denied(update(mine))
+    assert_denied(terminate(mine))
+
+    set_auth(role="owner", user_uuid=alice)
+    # Alice owns no unit of the relation
+    assert_denied(update(not_mine))
+    assert_denied(terminate(not_mine))
+    # Alice owns a unit of the relations, directly or through an ancestor
+    assert_granted(update(mine))
+    assert_granted(terminate(mine))
+    assert_granted(update(mine_by_ancestor))
+    assert_granted(terminate(mine_by_ancestor))
