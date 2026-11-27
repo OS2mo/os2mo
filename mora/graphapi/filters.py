@@ -628,6 +628,12 @@ class KLEFilter(BaseFilter, OrganisationUnitFiltered):
         ),
     )
 
+    not_: KLEFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="KLEs matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="Leave filter.")
 class LeaveFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
