@@ -646,6 +646,12 @@ class LeaveFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    not_: LeaveFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Leaves matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="Manager filter.")
 class ManagerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
