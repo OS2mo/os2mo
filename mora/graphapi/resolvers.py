@@ -1914,6 +1914,20 @@ def manager_predicate(
         else:
             predicates.append(manager_has_primary)
 
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(OrganisationFunktionRegistrering.organisationfunktion_id)
+            .where(manager_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(
+                excluded.c.organisationfunktion_id
+                == OrganisationFunktionRegistrering.organisationfunktion_id
+            )
+        )
+
     return and_(*predicates)
 
 

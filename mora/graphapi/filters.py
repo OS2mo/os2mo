@@ -707,6 +707,12 @@ class ManagerFilter(BaseFilter, EmployeeFiltered, OrganisationUnitFiltered):
         ),
     )
 
+    not_: ManagerFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Managers matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(
     description=dedent(
