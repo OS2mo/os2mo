@@ -2601,6 +2601,20 @@ def organisation_unit_predicate(
             )
         )
 
+    # Not
+    if filter.not_ is not None:
+        excluded = (
+            select(OrganisationEnhedRegistrering.organisationenhed_id)
+            .where(organisation_unit_predicate(settings, version, filter.not_))
+            .subquery()
+        )
+        predicates.append(
+            ~exists().where(
+                excluded.c.organisationenhed_id
+                == OrganisationEnhedRegistrering.organisationenhed_id
+            )
+        )
+
     return and_(*predicates)
 
 
