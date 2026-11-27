@@ -1099,6 +1099,12 @@ class RelatedUnitFilter(BaseFilter, OrganisationUnitFiltered):
     # TODO: registration filter
     pass
 
+    not_: RelatedUnitFilter | None = strawberry.field(
+        name="not",
+        default=None,
+        description="Related units matching the nested filter are excluded from the result.",
+    )
+
 
 @strawberry.input(description="Rolebinding filter.")
 class RoleBindingFilter(BaseFilter, OrganisationUnitFiltered):
